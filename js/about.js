@@ -112,6 +112,14 @@
         body.dark-theme .about-logo { background:#0b1220; box-shadow:0 10px 30px rgba(0,0,0,.4); }
         body.dark-theme .about-desc { color:#cbd5e1; }
         body.dark-theme .about-tile { background:#0b1220; border-color:#1f2937; box-shadow:0 2px 8px rgba(0,0,0,.35); }
+        body.dark-theme .about-tile .icon-wrap { background-color:#0f172a !important; border:1px solid #1f2937; box-shadow:0 0 0 1px rgba(255,255,255,.04), 0 8px 18px rgba(0,0,0,.5); }
+        body.dark-theme .about-tile .icon-wrap.bg-primary-subtle { background-color: rgba(59,130,246,.14) !important; }
+        body.dark-theme .about-tile .icon-wrap.bg-success-subtle { background-color: rgba(34,197,94,.14) !important; }
+        body.dark-theme .about-tile .icon-wrap.bg-danger-subtle { background-color: rgba(239,68,68,.14) !important; }
+        body.dark-theme .about-tile .icon-wrap.text-primary { color:#93c5fd !important; }
+        body.dark-theme .about-tile .icon-wrap.text-success { color:#86efac !important; }
+        body.dark-theme .about-tile .icon-wrap.text-danger { color:#fca5a5 !important; }
+        body.dark-theme .value a:hover { color:#c7d2fe; }
         body.dark-theme .about-tile:hover { box-shadow:0 10px 24px rgba(0,0,0,.45); }
         body.dark-theme .title { color:#e2e8f0; }
         body.dark-theme .value, body.dark-theme .value a { color:#93c5fd; }
