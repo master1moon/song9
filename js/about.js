@@ -106,6 +106,17 @@
         .title { font-weight:600; font-size:14px; color:#334155; }
         .value a { text-decoration:none; }
         @media (max-width: 768px) { .about-card{ border-radius:16px } .about-desc{ font-size:15px } .icon-wrap{ width:40px; height:40px; font-size:16px } }
+        /* Dark theme adjustments */
+        body.dark-theme .about-card { background: linear-gradient(180deg,#0f172a, #0b1220); border: 1px solid #1f2a44; }
+        body.dark-theme .about-glow { background: radial-gradient(600px 300px at 50% -10%, rgba(59,130,246,.22), transparent 60%); }
+        body.dark-theme .about-logo { background:#0b1220; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+        body.dark-theme .about-desc { color:#cbd5e1; }
+        body.dark-theme .about-tile { background:#0b1220; border-color:#1f2937; box-shadow:0 2px 8px rgba(0,0,0,.35); }
+        body.dark-theme .about-tile:hover { box-shadow:0 10px 24px rgba(0,0,0,.45); }
+        body.dark-theme .title { color:#e2e8f0; }
+        body.dark-theme .value, body.dark-theme .value a { color:#93c5fd; }
+        body.dark-theme .text-muted, body.dark-theme .page-title { color:#e5e7eb !important; }
+        body.dark-theme .about-rights { color:#94a3b8; }
       </style>
     `;
 
