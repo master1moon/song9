@@ -137,13 +137,14 @@
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-sm mb-0">
-              <thead><tr><th>المكان</th><th>التفاصيل</th><th style="width:110px">إجراء</th></tr></thead>
+              <thead><tr><th>السبب</th><th>المكان</th><th>التفاصيل</th><th style="width:96px">إجراء</th></tr></thead>
               <tbody>
                 ${issues.items.map((it,idx)=>{
-                  const place = it.locationLabel || '';
-                  const details = it.detailText || it.message || '';
+                  const place = it.locationLabel || (it.entity==='sale' ? (`البقالات والمحلات › ${it.storeName||'-'} · المبيعات`) : (it.entity==='payment' ? (`البقالات والمحلات › ${it.storeName||'-'} · التسديدات`) : ('المصروفات')));
+                  const details = it.detailText || '';
+                  const cause = it.message || '';
                   const cls = it.level==='critical'?'table-danger':'table-warning';
-                  return `<tr class="${cls}"><td>${place}</td><td>${details}</td><td><button class="btn btn-sm btn-primary issue-goto" data-idx="${idx}"><i class=\"fas fa-location-arrow\"></i> اذهب</button></td></tr>`;
+                  return `<tr class="${cls}"><td>${cause}</td><td>${place}</td><td>${details}</td><td><button class="btn btn-sm btn-primary issue-goto" data-idx="${idx}"><i class=\"fas fa-location-arrow\"></i> اذهب</button></td></tr>`;
                 }).join('')}
               </tbody>
             </table>
