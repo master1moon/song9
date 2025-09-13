@@ -720,7 +720,7 @@ function buildPartnerReportHTML(periodText, partnersCount, paysList, expsList, t
   const settings = getReportSettings();
   let html='';
   html += '<!doctype html><html lang="ar" dir="rtl">';
-  html += '<head><meta charset="utf-8"><title>تقرير الشركاء</title>';
+  html += '<head><meta charset="utf-8"><title>' + (window.APP_NAME || 'فاست لينك - حسابات') + ' | تقرير الشركاء</title>';
   html += '<style>' + getReportStyles() + '</style></head>';
   html += '<body>';
   html += '<div class="actions"><button onclick="window.print()">حفظ التقرير كـ PDF</button></div>';
@@ -1051,7 +1051,7 @@ function buildAccountStatementHTML(store, periodText, allTransactions, previousB
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
-    <title>كشف حساب متحرك - ${store.name}</title>
+    <title>${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'} | كشف حساب متحرك - ${store.name}</title>
     <style>
         ${getReportStyles()}
         .report-container {
@@ -1566,7 +1566,7 @@ function buildStoreReportHTML(store, periodText, mappedSalesForExport, mappedPay
   
   let html = '';
   html += '<!doctype html><html lang="ar" dir="rtl">';
-  html += '<head><meta charset="utf-8"><title>كشف حساب: ' + store.name + '</title>';
+  html += '<head><meta charset="utf-8"><title>' + ((typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات') + ' | كشف حساب: ' + store.name + '</title>';
   html += '<style>' + getReportStyles() + '</style></head>';
   html += '<body>';
   html += '<div class="actions"><button onclick="window.print()">حفظ التقرير كـ PDF</button></div>';
@@ -1642,7 +1642,7 @@ function buildExpensesReportHTML(expensesRows, periodText) {
 
   let html = '';
   html += '<!doctype html><html lang="ar" dir="rtl">';
-  html += '<head><meta charset="utf-8"><title>تقرير المصروفات</title>';
+  html += '<head><meta charset="utf-8"><title>' + ((typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات') + ' | تقرير المصروفات</title>';
   html += '<style>' + getReportStyles() + '</style></head>';
   html += '<body>';
   html += '<div class="actions"><button onclick="window.print()">حفظ التقرير كـ PDF</button></div>';
@@ -2891,7 +2891,7 @@ function buildPrintPageHTML(title, period, data, type) {
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
-    <title>${title}</title>
+    <title>${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'} | ${title}</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
         .header { text-align: center; margin-bottom: 30px; }

@@ -489,6 +489,10 @@ function refreshCurrentView() {
 // يجعل الدوال متاحة في جميع الملفات الأخرى
 // التحقق من وجود window لتجنب الأخطاء في بيئة Node.js
 if (typeof window !== 'undefined') {
+  // اسم التطبيق المركزي للاستخدام عبر المشروع
+  if (typeof window.APP_NAME === 'undefined') {
+    window.APP_NAME = 'فاست لينك - حسابات';
+  }
   window.toEnglishDigits = toEnglishDigits;
   window.formatNumber = formatNumber;
   window.parseFormattedNumber = parseFormattedNumber;

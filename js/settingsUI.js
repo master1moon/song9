@@ -1585,7 +1585,7 @@
             <html dir="rtl">
             <head>
                 <meta charset="UTF-8">
-                <title>معاينة التقرير</title>
+                <title>${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'} | معاينة التقرير</title>
                 <style>
                     @page {
                         size: ${settings.paperSize} ${settings.orientation};
