@@ -157,6 +157,51 @@
         if (importBtn) {
             importBtn.addEventListener('click', importSettings);
         }
+
+        // ربط أزرار تبويب المزامنة
+        setTimeout(()=>{
+          const saveBtn = document.getElementById('syncSaveBtn');
+          const createBtn = document.getElementById('syncCreateBtn');
+          const uploadBtn = document.getElementById('syncUploadBtn');
+          const downloadBtn = document.getElementById('syncDownloadBtn');
+          const testBtn = document.getElementById('syncTestBtn');
+          const statusEl = document.getElementById('syncStatus');
+          function setStatus(html){ if(statusEl){ statusEl.innerHTML = html; } }
+          if (saveBtn) saveBtn.addEventListener('click', ()=>{
+            try{
+              const updates = {
+                token: document.getElementById('syncGithubToken').value.trim(),
+                gistId: document.getElementById('syncGistId').value.trim(),
+                fileName: document.getElementById('syncFileName').value.trim() || 'network-cards.json',
+                autoSync: document.getElementById('syncAuto').checked
+              };
+              if (typeof GithubSync!=='undefined' && GithubSync.setSettings) GithubSync.setSettings(updates);
+              if (GithubSync.save) GithubSync.save();
+              if (typeof showNotification==='function') showNotification('تم حفظ إعدادات المزامنة', 'success');
+            }catch(e){ if (typeof showNotification==='function') showNotification('فشل حفظ إعدادات المزامنة', 'error'); }
+          });
+          if (createBtn) createBtn.addEventListener('click', async()=>{
+            setStatus('<div class="text-info">جاري إنشاء Gist...</div>');
+            const ok = await (GithubSync && GithubSync.createGist ? GithubSync.createGist() : Promise.resolve(false));
+            setStatus(ok? '<div class="text-success">تم إنشاء Gist وحفظ المعرف</div>':'<div class="text-danger">فشل إنشاء Gist</div>');
+          });
+          if (uploadBtn) uploadBtn.addEventListener('click', async()=>{
+            setStatus('<div class="text-info">جاري رفع البيانات...</div>');
+            const ok = await (GithubSync && GithubSync.upload ? GithubSync.upload() : Promise.resolve(false));
+            setStatus(ok? '<div class="text-success">تم رفع البيانات بنجاح</div>':'<div class="text-danger">فشل رفع البيانات</div>');
+          });
+          if (downloadBtn) downloadBtn.addEventListener('click', async()=>{
+            setStatus('<div class="text-info">جاري تحميل البيانات...</div>');
+            const ok = await (GithubSync && GithubSync.download ? GithubSync.download() : Promise.resolve(false));
+            setStatus(ok? '<div class="text-success">تم تحميل البيانات وتحديث الواجهة</div>':'<div class="text-danger">فشل تحميل البيانات</div>');
+          });
+          if (testBtn) testBtn.addEventListener('click', async()=>{
+            setStatus('<div class="text-info">اختبار الاتصال...</div>');
+            const res = await (GithubSync && GithubSync.testConnection ? GithubSync.testConnection() : Promise.resolve({ok:false}));
+            if (res.ok) setStatus(`<div class="text-success">${res.message||'الاتصال ناجح'}</div>`);
+            else setStatus(`<div class="text-danger">${res.message||'الاتصال فشل'}</div>`);
+          });
+        }, 100);
     }
 
     /**
@@ -238,6 +283,9 @@
         
         // تبويب الأداء
         html += createPerformanceTab(settings.performance);
+
+        // تبويب المزامنة (GitHub)
+        html += createSyncTab(settings);
 
         // تبويب الأعلام (الميزات التجريبية)
         html += createFeatureFlagsTab(settings.advanced || {});
@@ -1276,6 +1324,52 @@
                 <button class="btn btn-warning" onclick="if(typeof balanceCache !== 'undefined') { balanceCache.clear(); reportCache.clear(); showNotification('تم مسح الكاش', 'success'); }">
                     <i class="fas fa-broom"></i> مسح الكاش
                 </button>
+            </div>
+        `;
+    }
+
+    /**
+     * تبويب المزامنة (GitHub)
+     */
+    function createSyncTab(allSettings) {
+        const sync = (typeof GithubSync!=='undefined' && GithubSync.getSettings) ? GithubSync.getSettings() : { token:'', gistId:'', fileName:'network-cards.json', autoSync:false };
+        return `
+            <div class="settings-tab" id="sync-settings" style="display:none;">
+                <h5 class="mb-4"><i class="fab fa-github"></i> المزامنة مع GitHub</h5>
+                <div class="alert alert-info">تُستخدم للمزامنة الاحتياطية ومشاركة البيانات بين الأجهزة. يُنصح باستخدام Gist خاص.</div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">GitHub Token</label>
+                                <input type="password" class="form-control" id="syncGithubToken" placeholder="ghp_..." value="${sync.token||''}">
+                                <small class="text-muted">لن يتم عرض التوكن بعد الحفظ. استخدم Gist خاص.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Gist ID</label>
+                                <input type="text" class="form-control" id="syncGistId" placeholder="مثال: a1b2c3..." value="${sync.gistId||''}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">اسم ملف البيانات</label>
+                                <input type="text" class="form-control" id="syncFileName" placeholder="network-cards.json" value="${sync.fileName||'network-cards.json'}">
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check form-switch">
+                                  <input class="form-check-input" type="checkbox" id="syncAuto" ${sync.autoSync ? 'checked' : ''}>
+                                  <label class="form-check-label" for="syncAuto">مزامنة تلقائية عند توفر الإنترنت</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            <button class="btn btn-primary" id="syncSaveBtn"><i class="fas fa-save me-1"></i> حفظ الإعدادات</button>
+                            <button class="btn btn-outline-primary" id="syncCreateBtn"><i class="fas fa-plus me-1"></i> إنشاء Gist</button>
+                            <button class="btn btn-outline-success" id="syncUploadBtn"><i class="fas fa-upload me-1"></i> رفع البيانات</button>
+                            <button class="btn btn-outline-secondary" id="syncDownloadBtn"><i class="fas fa-download me-1"></i> تحميل البيانات</button>
+                            <button class="btn btn-outline-info" id="syncTestBtn"><i class="fas fa-vial me-1"></i> اختبار الاتصال</button>
+                        </div>
+                        <div class="mt-3" id="syncStatus"></div>
+                    </div>
+                </div>
             </div>
         `;
     }

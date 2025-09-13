@@ -255,6 +255,42 @@ async function githubDownloadData() {
     }
 }
 
+// واجهة مزامنة عامة للاستخدام من الإعدادات
+if (typeof window !== 'undefined') {
+  window.GithubSync = {
+    getSettings() {
+      try { return Object.assign({}, githubSettings); } catch(_) { return {}; }
+    },
+    setSettings(updates) {
+      try { githubSettings = Object.assign(githubSettings, updates || {}); return true; } catch(_) { return false; }
+    },
+    save() { try { saveGithubSettings(); return true; } catch(_) { return false; } },
+    load() { try { loadGithubSettings(); return true; } catch(_) { return false; } },
+    async createGist() { try { await githubCreateGist(); return true; } catch(_) { return false; } },
+    async upload() { try { await githubUploadData(); return true; } catch(_) { return false; } },
+    async download() { try { await githubDownloadData(); return true; } catch(_) { return false; } },
+    async testConnection() {
+      try {
+        if (!githubSettings.gistId) {
+          return { ok: false, message: 'Gist ID غير مضبوط' };
+        }
+        const headers = { 'Accept': 'application/vnd.github+json' };
+        if (githubSettings.token) headers['Authorization'] = `Bearer ${githubSettings.token}`;
+        const res = await fetch(`https://api.github.com/gists/${githubSettings.gistId}`, { headers });
+        if (!res.ok) {
+          return { ok: false, status: res.status, message: 'تعذر الوصول إلى الـ Gist' };
+        }
+        const meta = await res.json();
+        const fileName = githubSettings.fileName || 'network-cards.json';
+        const exists = !!(meta && meta.files && (meta.files[fileName] || Object.values(meta.files||{})[0]));
+        return { ok: true, hasFile: exists, message: exists ? 'الاتصال ناجح والملف موجود' : 'الاتصال ناجح لكن الملف غير موجود' };
+      } catch (e) {
+        return { ok: false, message: 'فشل الاختبار: تحقق من الشبكة أو الإعدادات' };
+      }
+    }
+  };
+}
+
 /**
  * معالج حدث تحميل الصفحة
  * يقوم بتحميل إعدادات GitHub وإضافة مستمعي الأحداث للأزرار
