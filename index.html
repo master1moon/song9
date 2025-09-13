@@ -1983,6 +1983,7 @@
             <div class="header-bar">
                 <h2 class="page-title">لوحة التحكم</h2>
                 <div>
+                    <span id="syncBadge" class="badge bg-secondary me-2 d-none">الحالة</span>
                     <span id="currentDate" class="text-muted me-3"></span>
                     <span class="badge bg-primary">
                         <i class="fas fa-user me-1"></i> مدير النظام
@@ -6083,6 +6084,22 @@
                 });
             }
             
+            // شارة حالة المزامنة (آمنة)
+            (function(){
+                const el = document.getElementById('syncBadge');
+                function setBadge(text, cls){ if(!el) return; el.className = 'badge ' + cls; el.textContent = text; el.classList.remove('d-none'); }
+                async function refresh(){
+                    try{
+                        if (typeof GithubSync==='undefined' || !GithubSync.getSettings) { return; }
+                        const s = GithubSync.getSettings();
+                        if (!s || (!s.token && !s.gistId)) { setBadge('غير مهيأة', 'bg-secondary'); return; }
+                        const res = await GithubSync.testConnection();
+                        if (res && res.ok) { setBadge(res.hasFile ? 'متصل • ملف موجود' : 'متصل • لا يوجد ملف', 'bg-success'); }
+                        else { setBadge('تعذر الاتصال', 'bg-warning'); }
+                    } catch(_) { /* تجاهل */ }
+                }
+                setTimeout(refresh, 300);
+            })();
             // تنظيف backdrop عند إغلاق أي modal
             document.addEventListener('hidden.bs.modal', function (event) {
                 setTimeout(cleanupModalBackdrops, 100);
