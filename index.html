@@ -3353,9 +3353,8 @@
         // فلترة مصفوفة حسب تاريخ ضمن الفترة
         function filterByDateRange(items, getDate) {
             const { from, to } = getDashboardPeriodRange();
-            return items.filter(item => {
-                const d = (getDate(item) || '').slice(0,10);
-                return d >= from && d <= to;
+            return (items||[]).filter(item => {
+                try{ const d = formatDateEn(getDate(item) || ''); return d && d >= from && d <= to; }catch(_){ return false; }
             });
         }
         

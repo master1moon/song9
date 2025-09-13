@@ -2173,22 +2173,24 @@ function generatePartnerReportData() {
  * المخرجات: راجع التنفيذ
  */
 function getPeriodRange(reportType) {
-  // إذا تم تمرير نوع التقرير، استخدم العناصر الخاصة به
+  try {
+    if (typeof PeriodManager!=='undefined' && PeriodManager.getDateRange) {
+      const r = PeriodManager.getDateRange();
+      return { fromDate: r.from, toDate: r.to };
+    }
+  } catch(_) {}
+  // مسار سابق للتوافق
   if (reportType) {
     const periodSelect = document.getElementById(`${reportType}Period`);
     const period = periodSelect ? periodSelect.value : 'this_month';
-    
     if (period === 'custom') {
       const fromDate = document.getElementById(`${reportType}FromDate`)?.value || moment().startOf('month').format('YYYY-MM-DD');
       const toDate = document.getElementById(`${reportType}ToDate`)?.value || moment().format('YYYY-MM-DD');
       return { fromDate, toDate };
     }
-    
     return getPeriodRangeByValue(period);
   }
-  
-  // السلوك الافتراضي القديم للتوافق مع الكود الموجود
-  const f = document.getElementById('reportFromDate'); 
+  const f = document.getElementById('reportFromDate');
   const t = document.getElementById('reportToDate');
   const fromDate = formatDateEn((f && f.value) || moment().startOf('month').format('YYYY-MM-DD'));
   const toDate = formatDateEn((t && t.value) || moment().format('YYYY-MM-DD'));

@@ -376,18 +376,24 @@ function startInlineEditExpense(tr, expense){
  * المخرجات: راجع التنفيذ
  */
 function getFilteredExpensesForExport(){
-  const periodSel = document.getElementById('expensesPeriod');
-  const period = periodSel ? periodSel.value : 'from_start';
   let from = '0000-01-01'; let to = moment().format('YYYY-MM-DD');
-  if (period === 'day') from = moment().startOf('day').format('YYYY-MM-DD');
-  else if (period === 'week') from = moment().startOf('week').format('YYYY-MM-DD');
-  else if (period === 'month') from = moment().subtract(1, 'month').add(1, 'day').format('YYYY-MM-DD');
-  else if (period === 'this_month') from = moment().startOf('month').format('YYYY-MM-DD');
-  else if (period === 'custom') {
-    const fromInp = document.getElementById('expensesFrom'); const toInp = document.getElementById('expensesTo');
-    if (fromInp && fromInp.value) from = fromInp.value; if (toInp && toInp.value) to = toInp.value;
-  }
-  let filtered = (data.expenses||[]).filter(exp => { const d = (exp.date || '').slice(0, 10); return d >= from && d <= to; });
+  try {
+    if (typeof PeriodManager!=='undefined' && PeriodManager.getDateRange) {
+      const r = PeriodManager.getDateRange(); from = r.from||from; to = r.to||to;
+    } else {
+      const periodSel = document.getElementById('expensesPeriod');
+      const period = periodSel ? periodSel.value : 'from_start';
+      if (period === 'day') from = moment().startOf('day').format('YYYY-MM-DD');
+      else if (period === 'week') from = moment().startOf('week').format('YYYY-MM-DD');
+      else if (period === 'month') from = moment().subtract(1, 'month').add(1, 'day').format('YYYY-MM-DD');
+      else if (period === 'this_month') from = moment().startOf('month').format('YYYY-MM-DD');
+      else if (period === 'custom') {
+        const fromInp = document.getElementById('expensesFrom'); const toInp = document.getElementById('expensesTo');
+        if (fromInp && fromInp.value) from = fromInp.value; if (toInp && toInp.value) to = toInp.value;
+      }
+    }
+  } catch(_) {}
+  let filtered = (data.expenses||[]).filter(exp => { try{ const d = formatDateEn(exp.date || ''); return d && d >= from && d <= to; }catch(_){ return false; } });
   // apply search term if exists
   const q = (expensesState.search || '').toLowerCase();
   if (q) {
