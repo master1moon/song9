@@ -606,6 +606,7 @@ if (typeof window !== 'undefined') {
       if (!splash) return;
       // نص الحقوق من ملفات الحقوق في المشروع (مختصر جميل)
       const rightsEl = document.getElementById('splashRights');
+      const descEl = document.getElementById('splashDesc');
       const year = new Date().getFullYear();
       const rightsHtml = `
         <div>جميع الحقوق محفوظة © ${year}</div>
@@ -613,6 +614,11 @@ if (typeof window !== 'undefined') {
         <div class="mt-2" style="font-size:12px; opacity:.8;">يُحظر النسخ أو التوزيع بدون إذن</div>
       `;
       if (typeof setHTML === 'function') { setHTML(rightsEl, rightsHtml); } else { rightsEl.innerHTML = rightsHtml; }
+      if (descEl) descEl.textContent = (typeof window.APP_DESCRIPTION !== 'undefined') ? window.APP_DESCRIPTION : '';
+      const verEl = document.getElementById('appVersionLabel');
+      if (verEl && typeof window.APP_VERSION !== 'undefined') {
+        verEl.textContent = 'الإصدار ' + window.APP_VERSION;
+      }
       splash.style.display = 'flex';
       // إخفاء بعد أول تفاعل أو بعد مهلة قصيرة
       const hide = ()=> { splash.classList.add('fade-out'); setTimeout(()=>{ splash.style.display='none'; }, 600); document.removeEventListener('click', hide); };
