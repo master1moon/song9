@@ -508,6 +508,12 @@ function buildReportHeader(title = 'تقرير') {
   headerHTML += '</div>'; // company-details
   headerHTML += '</div>'; // company-info
   
+  // اسم التطبيق في الترويسة
+  try {
+    const appName = (typeof window !== 'undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات';
+    headerHTML += `<div class="app-name" style="margin-top:6px;color:#0ea5e9;font-weight:700;">${appName}</div>`;
+  } catch(_) {}
+  
   // الشعار
   if (settings.companyLogo) {
     headerHTML += '<div class="company-logo">';

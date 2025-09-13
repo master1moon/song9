@@ -1660,6 +1660,7 @@
                 <div class="header">
                     <div class="company-info">
                         <h1>${settings.companyName || 'اسم الشركة'}</h1>
+                        <div style="margin-top:6px;color:#0ea5e9;font-weight:700;">${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'}</div>
                         <div class="company-details">
                             ${settings.companyPhone ? `<div>هاتف: ${settings.companyPhone}</div>` : ''}
                             ${settings.companyEmail ? `<div>بريد: ${settings.companyEmail}</div>` : ''}
