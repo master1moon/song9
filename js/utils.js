@@ -500,6 +500,48 @@ if (typeof window !== 'undefined') {
   if (typeof window.APP_VERSION === 'undefined') {
     window.APP_VERSION = '01.06';
   }
+  // PeriodManager — مصدر حقيقة واحد للفترة
+  if (typeof window.PeriodManager === 'undefined') {
+    (function(){
+      const DEFAULT_ID = 'from_start';
+      let state = { id: DEFAULT_ID, from: null, to: null };
+      function clampDate(str){ try{ const s = formatDateEn(str); if (!s) return null; const y = parseInt(s.slice(0,4)); if (y<1900||y>2100) return null; return s; }catch(_){ return null; } }
+      function rangeFor(id, from=null, to=null){
+        try {
+          if (id === 'day') { const t = moment().format('YYYY-MM-DD'); return {from:t,to:t}; }
+          if (id === 'week') { return {from: moment().startOf('week').format('YYYY-MM-DD'), to: moment().format('YYYY-MM-DD')}; }
+          if (id === 'month') { return {from: moment().subtract(1,'month').add(1,'day').format('YYYY-MM-DD'), to: moment().format('YYYY-MM-DD')}; }
+          if (id === 'this_month') { return {from: moment().startOf('month').format('YYYY-MM-DD'), to: moment().format('YYYY-MM-DD')}; }
+          if (id === 'prev_month') { return {from: moment().subtract(1,'month').startOf('month').format('YYYY-MM-DD'), to: moment().subtract(1,'month').endOf('month').format('YYYY-MM-DD')}; }
+          if (id === 'custom') {
+            const F = clampDate(from), T = clampDate(to);
+            if (F && T && F <= T) return {from:F,to:T};
+            const today = moment().format('YYYY-MM-DD');
+            return {from: today, to: today};
+          }
+          // from_start
+          return {from:'0000-01-01', to: moment().format('YYYY-MM-DD')};
+        } catch(_) { const today = moment().format('YYYY-MM-DD'); return {from: '0000-01-01', to: today}; }
+      }
+      function setPeriod(id, opts){
+        try{
+          const cfg = opts || {}; const r = rangeFor(id||state.id, cfg.from, cfg.to);
+          state = { id: id||state.id, from: r.from, to: r.to };
+          document.dispatchEvent(new CustomEvent('periodChanged', { detail: { id: state.id, from: state.from, to: state.to } }));
+        }catch(_){ /* لا تنهار */ }
+      }
+      function getPeriod(){ return Object.assign({}, state); }
+      function getDateRange(){ return { from: state.from, to: state.to }; }
+      function onChange(cb){ document.addEventListener('periodChanged', e=>{ try{ cb && cb(e.detail); }catch(_){ } }); }
+      window.PeriodManager = { setPeriod, getPeriod, getDateRange, onChange };
+      // تعيين فترة البداية من الإعدادات إن وجدت
+      try {
+        const s = (typeof AppSettings!=='undefined') ? AppSettings.getAll() : null;
+        const def = s && s.display && s.display.defaultPeriod ? s.display.defaultPeriod : DEFAULT_ID;
+        setPeriod(def);
+      } catch(_) { setPeriod(DEFAULT_ID); }
+    })();
+  }
   window.toEnglishDigits = toEnglishDigits;
   window.formatNumber = formatNumber;
   window.parseFormattedNumber = parseFormattedNumber;

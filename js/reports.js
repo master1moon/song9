@@ -2231,7 +2231,8 @@ function renderQuickSummaries(){
     console.warn('البيانات غير متوفرة في renderQuickSummaries');
     return;
   }
-  const { fromDate, toDate } = getPeriodRange('summaries');
+  const rSumm = (typeof PeriodManager!=='undefined' && PeriodManager.getDateRange) ? PeriodManager.getDateRange() : (typeof getPeriodRange==='function' ? getPeriodRange('summaries') : {fromDate: moment().startOf('month').format('YYYY-MM-DD'), toDate: moment().format('YYYY-MM-DD')});
+  const fromDate = rSumm.from || rSumm.fromDate; const toDate = rSumm.to || rSumm.toDate;
   const end = moment(toDate);
   let start = moment(fromDate);
   // احمِ الأداء: في حال كانت الفترة طويلة جدًا، اعرض آخر 365 يومًا فقط

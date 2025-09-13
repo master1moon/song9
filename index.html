@@ -3338,27 +3338,14 @@
         
         // تحديد فترة لوحة التحكم حسب اختيار المستخدم
         function getDashboardPeriodRange() {
-            const select = document.getElementById('dashboardPeriod');
-            const val = select ? select.value : 'from_start';
+            try {
+                if (typeof PeriodManager!=='undefined' && PeriodManager.getDateRange) {
+                    const r = PeriodManager.getDateRange();
+                    return { from: r.from, to: r.to };
+                }
+            } catch(_) {}
+            // fallback الآمن
             const today = moment().format('YYYY-MM-DD');
-            if (val === 'day') {
-                const from = moment().startOf('day').format('YYYY-MM-DD');
-                return { from, to: today };
-            } else if (val === 'week') {
-                const from = moment().startOf('week').format('YYYY-MM-DD');
-                return { from, to: today };
-            } else if (val === 'month') {
-                const from = moment().subtract(1, 'month').add(1, 'day').format('YYYY-MM-DD');
-                return { from, to: today };
-            } else if (val === 'this_month') {
-                const from = moment().startOf('month').format('YYYY-MM-DD');
-                return { from, to: today };
-            } else if (val === 'prev_month') {
-                const from = moment().subtract(1,'month').startOf('month').format('YYYY-MM-DD');
-                const to = moment().subtract(1,'month').endOf('month').format('YYYY-MM-DD');
-                return { from, to };
-            }
-            // from_start
             return { from: '0000-01-01', to: today };
         }
         
@@ -6085,14 +6072,14 @@
             const currentVisible = document.querySelector('.section:not([style*="display: none"])') || document.getElementById('dashboard');
             if (currentVisible) currentVisible.classList.add('show');
 
-            // مستمع لتغيير مدة الحساب في لوحة التحكم
+            // مستمع لتغيير مدة الحساب في لوحة التحكم (آمن مع PeriodManager)
             const dashboardPeriodSelect = document.getElementById('dashboardPeriod');
             if (dashboardPeriodSelect) {
+                let periodDebounce;
+                function applyPeriod(){ try { if (typeof PeriodManager!=='undefined') PeriodManager.setPeriod(dashboardPeriodSelect.value); else { updateDashboard(); updateProfitReport(); generateDebtReport(); generatePartnerReports(); } } catch(_){ try{ updateDashboard(); updateProfitReport(); generateDebtReport(); generatePartnerReports(); }catch(__){} } }
                 dashboardPeriodSelect.addEventListener('change', () => {
-                    updateDashboard();
-                    updateProfitReport();
-                    generateDebtReport();
-                    generatePartnerReports();
+                    clearTimeout(periodDebounce);
+                    periodDebounce = setTimeout(applyPeriod, 200);
                 });
             }
             
