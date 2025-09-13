@@ -17,6 +17,8 @@
     <!-- <link rel="preload" as="font" type="font/woff2" href="./fonts/Amiri-Regular.woff2" crossorigin> -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="تطبيق ادارة المبيعات والمصروفات والمخزون ومتابعة الديون والمحلات وتقارير مفصلة للارباح والخسائر وحساب ارباح الشركاء - كل ماتحتاجه في مكان واحد">
+    <meta name="version" content="01.06">
     <title>فاست لينك - حسابات</title>
     <meta name="application-name" content="فاست لينك - حسابات">
     <meta name="apple-mobile-web-app-title" content="فاست لينك - حسابات">
@@ -4988,8 +4990,9 @@
             html += '<!doctype html>';
             html += '<html lang="ar" dir="rtl">';
             html += '<head><meta charset="utf-8">';
-            html += '<title>كشف حساب: ' + store.name + '</title>';
+            html += '<title>' + (window.APP_NAME || 'فاست لينك - حسابات') + ' | كشف حساب: ' + store.name + '</title>';
             html += '<style>' +
+                    '.app-brandline{ text-align:center; font-size:12px; color:#0ea5e9; margin:4px 0; font-weight:600; }' +
                     "@font-face { font-family:'AmiriExport'; src: url('" + fontUrl + "') format('woff2'); font-weight:400; font-style:normal; }" +
                     "body { font-family:'AmiriExport','Arial',sans-serif; padding:16px; }" +
                     '.summary{ display:flex; gap:12px; justify-content:flex-end; margin:10px 0; }' +
@@ -5003,6 +5006,7 @@
                     '@page{ size:A4; margin:12mm; }' +
                 '</style></head>';
             html += '<body>';
+            html += '<div class="app-brandline">' + (window.APP_NAME || 'فاست لينك - حسابات') + '</div>';
             html += '<div class="actions"><button onclick="window.print()">حفظ التقرير كـ PDF</button></div>';
             html += '<h3>كشف حساب: ' + store.name + '</h3>';
             html += '<div>الفترة: ' + periodText + ' | تاريخ التصدير: ' + (new Date()).toISOString().slice(0,10) + '</div>';

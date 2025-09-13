@@ -473,6 +473,12 @@ function buildReportHeader(title = 'تقرير') {
   const settings = getReportSettings();
   let headerHTML = '';
   
+  // سطر اسم التطبيق في الأعلى بخط صغير وفي المنتصف
+  try {
+    const appNameTop = (typeof window !== 'undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات';
+    headerHTML += `<div class="app-brandline">${appNameTop}</div>`;
+  } catch(_) {}
+  
   headerHTML += '<div class="report-header">';
   headerHTML += '<div class="company-section">';
   // إضافة شعار الشركة إن توفّر من الإعدادات وإلا شعار التطبيق الافتراضي
@@ -507,12 +513,6 @@ function buildReportHeader(title = 'تقرير') {
   }
   headerHTML += '</div>'; // company-details
   headerHTML += '</div>'; // company-info
-  
-  // اسم التطبيق في الترويسة
-  try {
-    const appName = (typeof window !== 'undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات';
-    headerHTML += `<div class="app-name" style="margin-top:6px;color:#0ea5e9;font-weight:700;">${appName}</div>`;
-  } catch(_) {}
   
   // الشعار
   if (settings.companyLogo) {
@@ -606,6 +606,14 @@ function getReportStyles() {
       size: ${settings.paperSize} ${settings.orientation}; 
       margin: ${settings.margins.top}mm ${settings.margins.right}mm ${settings.margins.bottom}mm ${settings.margins.left}mm;
     }
++    .app-brandline {
++      text-align: center;
++      font-size: 12px;
++      color: #0ea5e9;
++      margin-top: 4px;
++      margin-bottom: 4px;
++      font-weight: 600;
++    }
     body { font-family: 'Arial', sans-serif; padding: 16px; direction: rtl; margin: 0; background:#f8fafc; }
     .report-header { border-bottom: 3px solid #0ea5e9; padding-bottom: 20px; margin-bottom: 20px; background:linear-gradient(90deg,#e0f2fe,#f0f9ff); }
     .company-section {
@@ -2899,6 +2907,7 @@ function buildPrintPageHTML(title, period, data, type) {
     <meta charset="utf-8">
     <title>${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'} | ${title}</title>
     <style>
+        .app-brandline { text-align: center; font-size: 12px; color: #0ea5e9; margin: 4px 0; font-weight: 600; }
         body { font-family: Arial, sans-serif; padding: 20px; }
         .header { text-align: center; margin-bottom: 30px; }
         .content { margin: 20px 0; }
@@ -2909,6 +2918,7 @@ function buildPrintPageHTML(title, period, data, type) {
     </style>
 </head>
 <body>
+    <div class="app-brandline">${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'}</div>
     <div class="header">
         <h1>${title}</h1>
         <p>المدة: ${period}</p>

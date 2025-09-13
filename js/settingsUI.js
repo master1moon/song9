@@ -1658,10 +1658,11 @@
             </head>
             <body>
                 <div class="header">
+                    <div style="text-align:center;font-size:12px;color:#0ea5e9;margin:4px 0;font-weight:600;">${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'}</div>
                     <div class="company-info">
-                        <h1>${settings.companyName || 'اسم الشركة'}</h1>
-                        <div style="margin-top:6px;color:#0ea5e9;font-weight:700;">${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'}</div>
-                        <div class="company-details">
+                         <h1>${settings.companyName || 'اسم الشركة'}</h1>
+                        
+                         <div class="company-details">
                             ${settings.companyPhone ? `<div>هاتف: ${settings.companyPhone}</div>` : ''}
                             ${settings.companyEmail ? `<div>بريد: ${settings.companyEmail}</div>` : ''}
                             ${settings.companyAddress ? `<div>العنوان: ${settings.companyAddress}</div>` : ''}

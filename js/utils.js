@@ -493,6 +493,13 @@ if (typeof window !== 'undefined') {
   if (typeof window.APP_NAME === 'undefined') {
     window.APP_NAME = 'فاست لينك - حسابات';
   }
+  // وصف وإصدار التطبيق
+  if (typeof window.APP_DESCRIPTION === 'undefined') {
+    window.APP_DESCRIPTION = 'تطبيق ادارة المبيعات والمصروفات والمخزون ومتابعة الديون والمحلات وتقارير مفصلة للارباح والخسائر وحساب ارباح الشركاء - كل ماتحتاجه في مكان واحد';
+  }
+  if (typeof window.APP_VERSION === 'undefined') {
+    window.APP_VERSION = '01.06';
+  }
   window.toEnglishDigits = toEnglishDigits;
   window.formatNumber = formatNumber;
   window.parseFormattedNumber = parseFormattedNumber;
