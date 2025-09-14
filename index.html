@@ -3370,6 +3370,7 @@
         
         // تحديث لوحة التحكم
         function updateDashboard() {
+            try { const r = getDashboardPeriodRange(); console.log('[Dashboard] update range', r); } catch(_){}
             // تحديث الإحصائيات الثابتة
             document.getElementById('packagesCount').textContent = data.packages.length;
             document.getElementById('storesCount').textContent = data.stores.length;
