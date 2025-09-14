@@ -3129,7 +3129,7 @@ function wireAdditionalReportsExports() {
   const profitPeriod = document.getElementById('profitPeriod');
   
   if (summariesPeriod && !summariesPeriod.dataset._wired) {
-    summariesPeriod.addEventListener('change', () => {
+    summariesPeriod.addEventListener('change', (e) => {
       try {
         const val = summariesPeriod.value;
         syncCustomRange('summaries');
@@ -3143,7 +3143,7 @@ function wireAdditionalReportsExports() {
   }
   
   if (debtsPeriod && !debtsPeriod.dataset._wired) {
-    debtsPeriod.addEventListener('change', () => {
+    debtsPeriod.addEventListener('change', (e) => {
       try{
         const val = debtsPeriod.value;
         syncCustomRange('debts');
@@ -3157,7 +3157,7 @@ function wireAdditionalReportsExports() {
   }
   
   if (profitPeriod && !profitPeriod.dataset._wired) {
-    profitPeriod.addEventListener('change', () => {
+    profitPeriod.addEventListener('change', (e) => {
       try{
         const val = profitPeriod.value;
         syncCustomRange('profit');
