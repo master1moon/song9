@@ -880,8 +880,8 @@ function exportPartnerReport() {
   }
   
   const { fromDate, toDate } = getPeriodRange();
-  const sales = (data.sales || []).filter(s=> inPeriod(s.date, fromDate, toDate) && isStoreMatch(s));
-  const expenses = (data.expenses || []).filter(e=> inPeriod(e.date, fromDate, toDate) && isStoreMatch(e));
+  const sales = (data.sales || []).filter(s=> inPeriod(formatDateEn(s.date||''), fromDate, toDate) && isStoreMatch(s));
+  const expenses = (data.expenses || []).filter(e=> inPeriod(formatDateEn(e.date||''), fromDate, toDate) && isStoreMatch(e));
   const totalSales = sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
   const totalExpenses = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
   const netProfit = totalSales - totalExpenses;
@@ -2260,9 +2260,9 @@ function renderQuickSummaries(){
     }
     return days.map(d=> map.get(d)||0);
   }
-  const sales = (data.sales || []).filter(s=> inPeriod(s.date, days[0], days[days.length-1]) && isStoreMatch(s));
-  const payments = (data.payments || []).filter(p=> inPeriod(p.date, days[0], days[days.length-1]) && isStoreMatch(p));
-  const expenses = (data.expenses || []).filter(e=> inPeriod(e.date, days[0], days[days.length-1]) && isStoreMatch(e));
+  const sales = (data.sales || []).filter(s=> inPeriod(formatDateEn(s.date||''), days[0], days[days.length-1]) && isStoreMatch(s));
+  const payments = (data.payments || []).filter(p=> inPeriod(formatDateEn(p.date||''), days[0], days[days.length-1]) && isStoreMatch(p));
+  const expenses = (data.expenses || []).filter(e=> inPeriod(formatDateEn(e.date||''), days[0], days[days.length-1]) && isStoreMatch(e));
   const salesSeries = aggregateDaily(sales, s=>s.date, s=>s.total||0);
   const paymentsSeries = aggregateDaily(payments, p=>p.date, p=>p.amount||0);
   const expensesSeries = aggregateDaily(expenses, e=>e.date, e=>e.amount||0);

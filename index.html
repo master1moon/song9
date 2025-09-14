@@ -3376,7 +3376,11 @@
         function filterByDateRange(items, getDate) {
             const { from, to } = getDashboardPeriodRange();
             return (items||[]).filter(item => {
-                try{ const d = formatDateEn(getDate(item) || ''); return d && d >= from && d <= to; }catch(_){ return false; }
+                try{
+                    const raw = (item && item.__d) ? item.__d : (getDate ? getDate(item) : '');
+                    const d = formatDateEn(raw || '');
+                    return d && d >= from && d <= to;
+                }catch(_){ return false; }
             });
         }
         
@@ -3392,10 +3396,13 @@
             const totalCards = (D.inventory||[]).reduce((sum, item) => sum + (item.quantity||0), 0);
             document.getElementById('totalCards').textContent = formatNumber(totalCards, false);
             
-            // تطبيق الفلاتر الزمنية على مبيعات/تسديدات/مصروفات
-            const filteredSales = filterByDateRange((D.sales||[]), s => s.date);
-            const filteredPayments = filterByDateRange((D.payments||[]), p => p.date);
-            const filteredExpenses = filterByDateRange((D.expenses||[]), e => e.date);
+            // تطبيق الفلاتر الزمنية على مبيعات/تسديدات/مصروفات (مع تطبيع التاريخ)
+            function mapWithIsoDate(arr){
+                return (arr||[]).map(x=>{ try{ const iso = formatDateEn(x.date||''); return Object.assign({ __d: iso }, x); }catch(_){ return Object.assign({ __d: '' }, x); } });
+            }
+            const filteredSales = filterByDateRange(mapWithIsoDate(D.sales), s => s.__d);
+            const filteredPayments = filterByDateRange(mapWithIsoDate(D.payments), p => p.__d);
+            const filteredExpenses = filterByDateRange(mapWithIsoDate(D.expenses), e => e.__d);
             try { console.log('[Dashboard] counts', { sales: filteredSales.length, payments: filteredPayments.length, expenses: filteredExpenses.length }); } catch(_){ }
             
             // إجمالي المبيعات
