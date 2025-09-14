@@ -508,20 +508,36 @@ if (typeof window !== 'undefined') {
       function clampDate(str){ try{ const s = formatDateEn(str); if (!s) return null; const y = parseInt(s.slice(0,4)); if (y<1900||y>2100) return null; return s; }catch(_){ return null; } }
       function rangeFor(id, from=null, to=null){
         try {
-          if (id === 'day') { const t = moment().format('YYYY-MM-DD'); return {from:t,to:t}; }
-          if (id === 'week') { return {from: moment().startOf('week').format('YYYY-MM-DD'), to: moment().format('YYYY-MM-DD')}; }
-          if (id === 'month') { return {from: moment().subtract(1,'month').add(1,'day').format('YYYY-MM-DD'), to: moment().format('YYYY-MM-DD')}; }
-          if (id === 'this_month') { return {from: moment().startOf('month').format('YYYY-MM-DD'), to: moment().format('YYYY-MM-DD')}; }
-          if (id === 'prev_month') { return {from: moment().subtract(1,'month').startOf('month').format('YYYY-MM-DD'), to: moment().subtract(1,'month').endOf('month').format('YYYY-MM-DD')}; }
+          if (id === 'day') {
+            const now = moment(); const t = now.clone().locale('en').format('YYYY-MM-DD');
+            return { from: t, to: t };
+          }
+          if (id === 'week') {
+            const f = moment().startOf('week'); const t = moment();
+            return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') };
+          }
+          if (id === 'month') {
+            const f = moment().clone().subtract(1,'month').add(1,'day'); const t = moment();
+            return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') };
+          }
+          if (id === 'this_month') {
+            const f = moment().startOf('month'); const t = moment();
+            return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') };
+          }
+          if (id === 'prev_month') {
+            const f = moment().clone().subtract(1,'month').startOf('month');
+            const t = moment().clone().subtract(1,'month').endOf('month');
+            return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') };
+          }
           if (id === 'custom') {
             const F = clampDate(from), T = clampDate(to);
             if (F && T && F <= T) return {from:F,to:T};
-            const today = moment().format('YYYY-MM-DD');
+            const today = moment().clone().locale('en').format('YYYY-MM-DD');
             return {from: today, to: today};
           }
           // from_start
-          return {from:'0000-01-01', to: moment().format('YYYY-MM-DD')};
-        } catch(_) { const today = moment().format('YYYY-MM-DD'); return {from: '0000-01-01', to: today}; }
+          return {from:'0000-01-01', to: moment().clone().locale('en').format('YYYY-MM-DD')};
+        } catch(_) { const today = moment().clone().locale('en').format('YYYY-MM-DD'); return {from: '0000-01-01', to: today}; }
       }
       function setPeriod(id, opts){
         try{
