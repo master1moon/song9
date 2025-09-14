@@ -4800,14 +4800,31 @@
         
 
 
-        // ربط تغييرات واجهة فترة المصروفات
+        // ربط تغييرات واجهة فترة المصروفات مع الفترة المركزية
         (function(){
             const sel = document.getElementById('expensesPeriod');
             const rangeWrap = document.getElementById('expensesCustomRange');
             const applyBtn = document.getElementById('applyExpensesCustomRange');
             function syncRangeVisibility(){ if (!rangeWrap || !sel) return; rangeWrap.style.display = sel.value === 'custom' ? 'flex' : 'none'; }
-            if (sel){ sel.addEventListener('change', () => { syncRangeVisibility(); renderExpensesTable(); updateDashboard(); updateProfitReport(); }); }
-            if (applyBtn){ applyBtn.addEventListener('click', () => { renderExpensesTable(); updateDashboard(); updateProfitReport(); }); }
+            if (sel){ sel.addEventListener('change', () => {
+                syncRangeVisibility();
+                try {
+                    if (typeof PeriodManager!=='undefined') {
+                        if (sel.value === 'custom') { /* ينتظر زر تطبيق */ }
+                        else { PeriodManager.setPeriod(sel.value); }
+                    } else {
+                        renderExpensesTable(); updateDashboard(); updateProfitReport();
+                    }
+                } catch(_) { renderExpensesTable(); updateDashboard(); updateProfitReport(); }
+            }); }
+            if (applyBtn){ applyBtn.addEventListener('click', () => {
+                try {
+                    const f = document.getElementById('expensesFrom')?.value || '';
+                    const t = document.getElementById('expensesTo')?.value || '';
+                    if (typeof PeriodManager!=='undefined') PeriodManager.setPeriod('custom', { from: f, to: t });
+                    else { renderExpensesTable(); updateDashboard(); updateProfitReport(); }
+                } catch(_) { renderExpensesTable(); updateDashboard(); updateProfitReport(); }
+            }); }
             syncRangeVisibility();
         })();
         
@@ -6145,6 +6162,8 @@
                     periodDebounce = setTimeout(applyPeriod, 200);
                 });
             }
+            // تحديث لوحة التحكم عند تغير الفترة المركزية
+            document.addEventListener('periodChanged', function(){ try { updateDashboard(); } catch(_){} });
             // تحديث sparklines عند تغيير تجميع الرسم
             const sparkGroup = document.getElementById('dashboardSparkGroup');
             if (sparkGroup) {
