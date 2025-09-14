@@ -3130,30 +3130,42 @@ function wireAdditionalReportsExports() {
   
   if (summariesPeriod && !summariesPeriod.dataset._wired) {
     summariesPeriod.addEventListener('change', () => {
-      syncCustomRange('summaries');
-      if (summariesPeriod.value !== 'custom') {
-        renderQuickSummaries();
-      }
+      try {
+        const val = summariesPeriod.value;
+        syncCustomRange('summaries');
+        if (val !== 'custom') {
+          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod(val);
+          else renderQuickSummaries();
+        }
+      } catch(_) { try{ renderQuickSummaries(); }catch(__){} }
     });
     summariesPeriod.dataset._wired = '1';
   }
   
   if (debtsPeriod && !debtsPeriod.dataset._wired) {
     debtsPeriod.addEventListener('change', () => {
-      syncCustomRange('debts');
-      if (debtsPeriod.value !== 'custom') {
-        generateDebtReport();
-      }
+      try{
+        const val = debtsPeriod.value;
+        syncCustomRange('debts');
+        if (val !== 'custom') {
+          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod(val);
+          else generateDebtReport();
+        }
+      }catch(_) { try{ generateDebtReport(); }catch(__){} }
     });
     debtsPeriod.dataset._wired = '1';
   }
   
   if (profitPeriod && !profitPeriod.dataset._wired) {
     profitPeriod.addEventListener('change', () => {
-      syncCustomRange('profit');
-      if (profitPeriod.value !== 'custom') {
-        updateProfitReport();
-      }
+      try{
+        const val = profitPeriod.value;
+        syncCustomRange('profit');
+        if (val !== 'custom') {
+          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod(val);
+          else updateProfitReport();
+        }
+      }catch(_) { try{ updateProfitReport(); }catch(__){} }
     });
     profitPeriod.dataset._wired = '1';
   }
@@ -3164,18 +3176,49 @@ function wireAdditionalReportsExports() {
   const profitApply = document.getElementById('applyProfitRange');
   
   if (summariesApply && !summariesApply.dataset._wired) {
-    summariesApply.addEventListener('click', () => renderQuickSummaries());
+    summariesApply.addEventListener('click', () => {
+      try {
+        const from = document.getElementById('summariesFromDate')?.value || '';
+        const to = document.getElementById('summariesToDate')?.value || '';
+        if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod('custom', { from, to });
+        else renderQuickSummaries();
+      } catch(_) { try{ renderQuickSummaries(); }catch(__){} }
+    });
     summariesApply.dataset._wired = '1';
   }
   
   if (debtsApply && !debtsApply.dataset._wired) {
-    debtsApply.addEventListener('click', () => generateDebtReport());
+    debtsApply.addEventListener('click', () => {
+      try {
+        const from = document.getElementById('debtsFromDate')?.value || '';
+        const to = document.getElementById('debtsToDate')?.value || '';
+        if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod('custom', { from, to });
+        else generateDebtReport();
+      } catch(_) { try{ generateDebtReport(); }catch(__){} }
+    });
     debtsApply.dataset._wired = '1';
   }
   
   if (profitApply && !profitApply.dataset._wired) {
-    profitApply.addEventListener('click', () => updateProfitReport());
+    profitApply.addEventListener('click', () => {
+      try {
+        const from = document.getElementById('profitFromDate')?.value || '';
+        const to = document.getElementById('profitToDate')?.value || '';
+        if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod('custom', { from, to });
+        else updateProfitReport();
+      } catch(_) { try{ updateProfitReport(); }catch(__){} }
+    });
     profitApply.dataset._wired = '1';
+  }
+
+  // إعادة توليد جميع التقارير عند تغيير الفترة المركزية
+  if (!window.__reportsPeriodWired) {
+    document.addEventListener('periodChanged', function(){
+      try{ renderQuickSummaries(); }catch(_){}
+      try{ generateDebtReport(); }catch(_){}
+      try{ updateProfitReport(); }catch(_){}
+    });
+    window.__reportsPeriodWired = true;
   }
 }
 
