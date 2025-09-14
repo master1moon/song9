@@ -296,4 +296,36 @@
 
   // Expose for programmatic use
   window.__backupManager = { createSnapshot, listSnapshots, restoreSnapshot, deleteSnapshot };
+
+  // Periodic auto-snapshot timer (lightweight)
+  (function(){
+    try {
+      if (window.__autoSnapshotTimer) return; // already started
+      const KEY_INTERVAL = 'backupAutoIntervalMin';
+      const DEFAULT_MIN = 30; // كل 30 دقيقة
+      function getIntervalMs(){
+        try { return (Math.max(5, Number(localStorage.getItem(KEY_INTERVAL))||DEFAULT_MIN)) * 60 * 1000; } catch { return DEFAULT_MIN*60*1000; }
+      }
+      async function tick(){
+        try {
+          const snaps = await listSnapshots();
+          const last = snaps[0];
+          const lastAt = last ? Date.parse(last.createdAt||'') : 0;
+          const now = Date.now();
+          const minGap = getIntervalMs();
+          // لا تنشئ نسخة إن لم يمضِ الوقت الكافي أو لم تتغير البيانات
+          if (lastAt && (now - lastAt) < (minGap - 1000)) return;
+          const curHash = (typeof window !== 'undefined' && window.__dataHashForBackup) ? window.__dataHashForBackup : '';
+          const newHash = (function(x){ try { return JSON.stringify(x||{}).length + ':' + (x && (x.sales||[]).length) + ':' + (x && (x.payments||[]).length); } catch { return String(Math.random()); } })(window.data || {});
+          if (curHash === newHash) return;
+          window.__dataHashForBackup = newHash;
+          await createSnapshot('periodic');
+          await enforceRetention();
+        } catch(_) {}
+      }
+      // جدولة دورية وخفيفة
+      const run = ()=>{ try { tick(); } catch(_) {} finally { window.__autoSnapshotTimer = setTimeout(run, getIntervalMs()); } };
+      window.__autoSnapshotTimer = setTimeout(run, getIntervalMs());
+    } catch(_) {}
+  })();
 })();
