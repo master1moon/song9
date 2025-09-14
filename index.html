@@ -3347,16 +3347,28 @@
             }
         }
         
-        // تحديد فترة لوحة التحكم حسب اختيار المستخدم
+        // تحديد فترة لوحة التحكم
         function getDashboardPeriodRange() {
             try {
+                const sel = document.getElementById('dashboardPeriod');
+                function byVal(v){
+                    try {
+                        if (v === 'day') { const t = moment().clone().locale('en').format('YYYY-MM-DD'); return { from: t, to: t }; }
+                        if (v === 'week') { const f = moment().startOf('week'); const t = moment(); return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') }; }
+                        if (v === 'month') { const f = moment().clone().subtract(1,'month').add(1,'day'); const t = moment(); return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') }; }
+                        if (v === 'this_month') { const f = moment().startOf('month'); const t = moment(); return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') }; }
+                        if (v === 'prev_month') { const f = moment().clone().subtract(1,'month').startOf('month'); const t = moment().clone().subtract(1,'month').endOf('month'); return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') }; }
+                        return { from: '0000-01-01', to: moment().clone().locale('en').format('YYYY-MM-DD') };
+                    } catch(_) { return { from: '0000-01-01', to: moment().clone().locale('en').format('YYYY-MM-DD') }; }
+                }
+                if (sel && sel.value) return byVal(sel.value);
                 if (typeof PeriodManager!=='undefined' && PeriodManager.getDateRange) {
                     const r = PeriodManager.getDateRange();
                     return { from: r.from, to: r.to };
                 }
             } catch(_) {}
             // fallback الآمن
-            const today = moment().format('YYYY-MM-DD');
+            const today = moment().clone().locale('en').format('YYYY-MM-DD');
             return { from: '0000-01-01', to: today };
         }
         
