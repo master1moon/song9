@@ -6156,11 +6156,21 @@
             const dashboardPeriodSelect = document.getElementById('dashboardPeriod');
             if (dashboardPeriodSelect) {
                 let periodDebounce;
-                function applyPeriod(){ try { if (typeof PeriodManager!=='undefined') PeriodManager.setPeriod(dashboardPeriodSelect.value); else { updateDashboard(); updateProfitReport(); generateDebtReport(); generatePartnerReports(); } } catch(_){ try{ updateDashboard(); updateProfitReport(); generateDebtReport(); generatePartnerReports(); }catch(__){} } }
+                function applyPeriod(){
+                    try {
+                        if (typeof PeriodManager!=='undefined') {
+                            PeriodManager.setPeriod(dashboardPeriodSelect.value);
+                        }
+                    } catch(_) {}
+                    // تحديث فوري حتى لو فات الحدث
+                    try { updateDashboard(); updateProfitReport(); generateDebtReport(); generatePartnerReports(); } catch(__){}
+                }
                 dashboardPeriodSelect.addEventListener('change', () => {
                     clearTimeout(periodDebounce);
                     periodDebounce = setTimeout(applyPeriod, 200);
                 });
+                // مزامنة قيمة القائمة مع الفترة الحالية عند التحميل
+                try { if (typeof PeriodManager!=='undefined' && PeriodManager.getPeriod) { const p = PeriodManager.getPeriod(); if (p && p.id && dashboardPeriodSelect.querySelector(`option[value="${p.id}"]`)) { dashboardPeriodSelect.value = p.id; } } } catch(_){}
             }
             // تحديث لوحة التحكم عند تغير الفترة المركزية
             document.addEventListener('periodChanged', function(){ try { updateDashboard(); } catch(_){} });
