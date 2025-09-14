@@ -425,18 +425,21 @@ if (typeof window !== 'undefined') {
 function renderExpensesTable() {
   try {
     const table = document.getElementById('expensesTable'); if (!table) return;
-    const periodSel = document.getElementById('expensesPeriod');
-    const period = periodSel ? periodSel.value : 'from_start';
     let from = '0000-01-01'; let to = moment().format('YYYY-MM-DD');
-    if (period === 'day') from = moment().startOf('day').format('YYYY-MM-DD');
-    else if (period === 'week') from = moment().startOf('week').format('YYYY-MM-DD');
-    else if (period === 'month') from = moment().subtract(1, 'month').add(1, 'day').format('YYYY-MM-DD');
-    else if (period === 'this_month') from = moment().startOf('month').format('YYYY-MM-DD');
-    else if (period === 'prev_month') { from = moment().subtract(1,'month').startOf('month').format('YYYY-MM-DD'); to = moment().subtract(1,'month').endOf('month').format('YYYY-MM-DD'); }
-    else if (period === 'custom') {
-      const fromInp = document.getElementById('expensesFrom'); const toInp = document.getElementById('expensesTo');
-      if (fromInp && fromInp.value) from = fromInp.value; if (toInp && toInp.value) to = toInp.value;
-    }
+    try {
+      if (typeof PeriodManager!=='undefined' && PeriodManager.getDateRange){
+        const r = PeriodManager.getDateRange(); from = r.from||from; to = r.to||to;
+      } else {
+        const periodSel = document.getElementById('expensesPeriod');
+        const period = periodSel ? periodSel.value : 'from_start';
+        if (period === 'day') from = moment().startOf('day').format('YYYY-MM-DD');
+        else if (period === 'week') from = moment().startOf('week').format('YYYY-MM-DD');
+        else if (period === 'month') from = moment().subtract(1, 'month').add(1, 'day').format('YYYY-MM-DD');
+        else if (period === 'this_month') from = moment().startOf('month').format('YYYY-MM-DD');
+        else if (period === 'prev_month') { from = moment().subtract(1,'month').startOf('month').format('YYYY-MM-DD'); to = moment().subtract(1,'month').endOf('month').format('YYYY-MM-DD'); }
+        else if (period === 'custom') { const fromInp = document.getElementById('expensesFrom'); const toInp = document.getElementById('expensesTo'); if (fromInp && fromInp.value) from = fromInp.value; if (toInp && toInp.value) to = toInp.value; }
+      }
+    } catch(_){ }
     let filtered = data.expenses.filter(exp => { const d = (exp.date || '').slice(0, 10); return d >= from && d <= to; });
     const { pageItems, total, pages } = applySearchSortPaginate(filtered);
     const totalExpenses = filtered.reduce((sum, expense) => sum + (expense.amount || 0), 0);
@@ -501,6 +504,13 @@ function renderExpensesTable() {
     table.querySelectorAll('.delete-expense').forEach(btn => { btn.addEventListener('click', () => deleteExpense(btn.dataset.id)); });
     renderExpensesControls(total, pages);
   } catch(_) { /* avoid breaking entire app on error */ }
+}
+
+// استماع لتغيّر الفترة المركزية وتحديث المصروفات تلقائياً
+if (typeof document!=='undefined'){
+  try {
+    document.addEventListener('periodChanged', function(){ try { renderExpensesTable(); } catch(_){} });
+  } catch(_) {}
 }
 
 // إدارة chips لأنواع المصروفات

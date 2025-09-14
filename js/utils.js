@@ -503,7 +503,7 @@ if (typeof window !== 'undefined') {
   // PeriodManager — مصدر حقيقة واحد للفترة
   if (typeof window.PeriodManager === 'undefined') {
     (function(){
-      const DEFAULT_ID = 'from_start';
+      const DEFAULT_ID = 'this_month';
       let state = { id: DEFAULT_ID, from: null, to: null };
       function clampDate(str){ try{ const s = formatDateEn(str); if (!s) return null; const y = parseInt(s.slice(0,4)); if (y<1900||y>2100) return null; return s; }catch(_){ return null; } }
       function rangeFor(id, from=null, to=null){
