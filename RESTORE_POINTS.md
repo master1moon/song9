@@ -18,3 +18,15 @@ Files touched (key):
 
 Notes: This point captures the working state after period unification and UI improvements. Use this entry to manually compare/restore if needed.
 
+## 2025-09-13T12:00Z – Checkpoint: Stores Period Wiring + Sync Badge + Sparklines
+
+- Stores: wired to PeriodManager `periodChanged` only for time/custom filters; cycles untouched
+- Sync badge: added Sync Now/Restore buttons and "last sync time" indicator
+- Dashboard: added sparkline micro-charts and daily/weekly grouping toggle
+- Styles: added `.sparkline` CSS and dark-theme background
+
+Files touched (key):
+- js/stores.js, index.html, app.js, css/dark-theme-fixes.css
+
+Notes: Stable build. Use this before further UI polish.
+
