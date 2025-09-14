@@ -139,6 +139,12 @@
     const cur = getCurrentData();
     if (!cur) return null;
     const content = (typeof safeJsonParse==='function' && typeof FeatureFlags!=='undefined' && FeatureFlags.isEnabled('safeJsonParse')) ? safeJsonParse(JSON.stringify(cur), {}) : JSON.parse(JSON.stringify(cur));
+    // تضمين إعدادات التطبيق إن وجدت
+    try {
+      if (typeof AppSettings !== 'undefined' && AppSettings.getAll) {
+        content.settings = AppSettings.getAll();
+      }
+    } catch(_) {}
     const snap = {
       id: 'snap_'+Date.now(),
       createdAt: new Date().toISOString(),
@@ -288,6 +294,17 @@
     });
 
     renderUI();
+    // إنشاء نقطة استعادة يدوية لمرة واحدة قبل بدء التعديلات (لن تتكرر)
+    try {
+      const key = 'preChangeRestorePoint';
+      if (!localStorage.getItem(key)) {
+        createSnapshot('pre-change checkpoint').then(s=>{
+          enforceRetention();
+          localStorage.setItem(key, (s && s.id) ? s.id : 'yes');
+          try { showNotification('تم إنشاء نقطة استعادة قبل التعديلات', 'success'); } catch(_){ }
+        }).catch(()=>{});
+      }
+    } catch(_) {}
   });
 
   // Hook saveData for auto-backup
