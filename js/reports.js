@@ -3134,7 +3134,7 @@ function wireAdditionalReportsExports() {
         const val = summariesPeriod.value;
         syncCustomRange('summaries');
         if (val !== 'custom') {
-          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod(val);
+          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod && e && e.isTrusted) PeriodManager.setPeriod(val);
           else renderQuickSummaries();
         }
       } catch(_) { try{ renderQuickSummaries(); }catch(__){} }
@@ -3148,7 +3148,7 @@ function wireAdditionalReportsExports() {
         const val = debtsPeriod.value;
         syncCustomRange('debts');
         if (val !== 'custom') {
-          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod(val);
+          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod && e && e.isTrusted) PeriodManager.setPeriod(val);
           else generateDebtReport();
         }
       }catch(_) { try{ generateDebtReport(); }catch(__){} }
@@ -3162,7 +3162,7 @@ function wireAdditionalReportsExports() {
         const val = profitPeriod.value;
         syncCustomRange('profit');
         if (val !== 'custom') {
-          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod(val);
+          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod && e && e.isTrusted) PeriodManager.setPeriod(val);
           else updateProfitReport();
         }
       }catch(_) { try{ updateProfitReport(); }catch(__){} }

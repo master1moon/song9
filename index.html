@@ -6173,8 +6173,11 @@
                 // مزامنة قيمة القائمة مع الفترة الحالية عند التحميل
                 try { if (typeof PeriodManager!=='undefined' && PeriodManager.getPeriod) { const p = PeriodManager.getPeriod(); if (p && p.id && dashboardPeriodSelect.querySelector(`option[value="${p.id}"]`)) { dashboardPeriodSelect.value = p.id; } } } catch(_){}
             }
-            // تحديث لوحة التحكم عند تغير الفترة المركزية
-            document.addEventListener('periodChanged', function(){ try { updateDashboard(); } catch(_){} });
+            // تحديث لوحة التحكم عند تغير الفترة المركزية (مباشر وبعد نبضة قصيرة لضمان الاستقرار)
+            document.addEventListener('periodChanged', function(){
+                try { updateDashboard(); } catch(_){ }
+                try { setTimeout(()=>{ try{ updateDashboard(); }catch(__){} }, 50); } catch(_){ }
+            });
             // تحديث sparklines عند تغيير تجميع الرسم
             const sparkGroup = document.getElementById('dashboardSparkGroup');
             if (sparkGroup) {
