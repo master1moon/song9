@@ -17,7 +17,11 @@
     <!-- <link rel="preload" as="font" type="font/woff2" href="./fonts/Amiri-Regular.woff2" crossorigin> -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة كروت الشبكات اللاسلكية</title>
+    <meta name="description" content="تطبيق ادارة المبيعات والمصروفات والمخزون ومتابعة الديون والمحلات وتقارير مفصلة للارباح والخسائر وحساب ارباح الشركاء - كل ماتحتاجه في مكان واحد">
+    <meta name="version" content="01.06">
+    <title>فاست لينك - حسابات</title>
+    <meta name="application-name" content="فاست لينك - حسابات">
+    <meta name="apple-mobile-web-app-title" content="فاست لينك - حسابات">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/dark-theme-fixes.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1876,6 +1880,7 @@
         #splashCard { text-align: center; padding: 24px; border-radius: 16px; background: rgba(255,255,255,0.06); backdrop-filter: blur(6px); box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
         #splashLogo { width: 96px; height: 96px; object-fit: contain; border-radius: 16px; background: #ffffff22; padding: 8px; }
         #splashTitle { margin: 10px 0 4px; font-weight: 700; }
+        #splashDesc { font-size: 13px; opacity: 0.9; margin-bottom: 6px; }
         #splashRights { font-size: 13px; opacity: 0.85; line-height: 1.5; }
         .fade-out { animation: splashFade 600ms ease forwards; }
         @keyframes splashFade { to { opacity: 0; visibility: hidden; } }
@@ -1885,7 +1890,8 @@
     <div id="splashScreen" style="display:none;">
         <div id="splashCard">
             <img id="splashLogo" src="./icons/icon-128.png" alt="شعار التطبيق">
-            <div id="splashTitle">نظام كروت الشبكات</div>
+            <div id="splashTitle">فاست لينك - حسابات</div>
+            <div id="splashDesc"></div>
             <div id="splashRights"></div>
         </div>
     </div>
@@ -1913,8 +1919,8 @@
         <div class="sidebar">
             <div class="logo">
                 <img src="./icons/icon-128.png" alt="شعار التطبيق" style="width:64px; height:64px; object-fit:contain; border-radius:12px; background:#ffffff22; padding:6px;">
-                <h5>نظام كروت الشبكات</h5>
-                <p class="text-white-50 small">الإصدار النهائي</p>
+                <h5>فاست لينك - حسابات</h5>
+                <p class="text-white-50 small" id="appVersionLabel">الإصدار 01.06</p>
             </div>
             
             <ul class="nav flex-column mt-4">
@@ -1964,8 +1970,8 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#" data-section="parityCheck" onclick="if(window.switchSection) switchSection('parityCheck','فحص التطابق')">
-                        <i class="fas fa-balance-scale"></i> فحص التطابق
+                    <a class="nav-link" href="#" data-section="about" onclick="if(window.switchSection) switchSection('about','حول التطبيق')">
+                        <i class="fas fa-info-circle"></i> حول التطبيق
                     </a>
                 </li>
             </ul>
@@ -1977,6 +1983,7 @@
             <div class="header-bar">
                 <h2 class="page-title">لوحة التحكم</h2>
                 <div>
+                    <span id="syncBadge" class="badge bg-secondary me-2 d-none">الحالة</span>
                     <span id="currentDate" class="text-muted me-3"></span>
                     <span class="badge bg-primary">
                         <i class="fas fa-user me-1"></i> مدير النظام
@@ -1997,12 +2004,17 @@
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <label for="dashboardPeriod" class="mb-0">مدة الحساب:</label>
                     <select id="dashboardPeriod" class="form-select form-select-sm" style="width:auto;">
-                        <option value="from_start" selected>من البداية</option>
+                        <option value="from_start">من البداية</option>
                         <option value="day">خلال يوم</option>
                         <option value="week">خلال اسبوع</option>
                         <option value="month">خلال شهر</option>
-                        <option value="this_month">خلال هذا الشهر</option>
+                        <option value="this_month" selected>خلال هذا الشهر</option>
                         <option value="prev_month">خلال الشهر السابق</option>
+                    </select>
+                    <label for="dashboardSparkGroup" class="mb-0 ms-3">تجميع الرسم:</label>
+                    <select id="dashboardSparkGroup" class="form-select form-select-sm" style="width:auto;">
+                        <option value="day" selected>يومي</option>
+                        <option value="week">أسبوعي</option>
                     </select>
                 </div>
                 <div class="stats-container">
@@ -2021,22 +2033,27 @@
                     <div class="stat-box">
                         <div class="stat-title">إجمالي المبيعات</div>
                         <div id="totalSales" class="stat-value currency">0</div>
+                        <div id="spark_sales" class="sparkline text-primary mt-1"></div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-title">إجمالي التسديدات</div>
                         <div id="totalPaymentsSum" class="stat-value currency">0</div>
+                        <div id="spark_payments" class="sparkline text-success mt-1"></div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-title">إجمالي الديون</div>
                         <div id="totalDebtsSum" class="stat-value currency">0</div>
+                        <div id="spark_debts" class="sparkline text-danger mt-1"></div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-title">إجمالي المصروفات</div>
                         <div id="totalExpensesSum" class="stat-value currency">0</div>
+                        <div id="spark_expenses" class="sparkline text-warning mt-1"></div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-title">صافي الأرباح</div>
                         <div id="netProfit" class="stat-value currency">0</div>
+                        <div id="spark_net" class="sparkline text-info mt-1"></div>
                     </div>
                 </div>
 
@@ -2193,11 +2210,11 @@
                             <div class="col-12 col-md-auto d-flex align-items-center gap-2">
                                 <label for="expensesPeriod" class="mb-0">مدة العرض:</label>
                                 <select id="expensesPeriod" class="form-select form-select-sm" style="width:auto; min-width: 160px;">
-                                    <option value="from_start" selected>من البداية</option>
+                                    <option value="from_start">من البداية</option>
                                     <option value="day">خلال يوم</option>
                                     <option value="week">خلال اسبوع</option>
                                     <option value="month">خلال شهر</option>
-                                    <option value="this_month">خلال هذا الشهر</option>
+                                    <option value="this_month" selected>خلال هذا الشهر</option>
                                     <option value="prev_month">خلال الشهر السابق</option>
                                     <option value="custom">خلال مدة محددة</option>
                                 </select>
@@ -2711,6 +2728,9 @@
                             <a href="#" class="list-group-item list-group-item-action" data-tab="performance">
                                 <i class="fas fa-tachometer-alt"></i> الأداء
                             </a>
+                            <a href="#" class="list-group-item list-group-item-action" data-tab="sync">
+                                <i class="fab fa-github"></i> المزامنة
+                            </a>
                             <a href="#" class="list-group-item list-group-item-action" data-tab="flags">
                                 <i class="fas fa-flask"></i> الميزات التجريبية
                             </a>
@@ -2726,8 +2746,8 @@
                 </div>
             </div>
 
-            <!-- قسم فحص التطابق -->
-            <div id="parityCheck" class="section" style="display:none;"></div>
+            <!-- قسم حول التطبيق -->
+            <div id="about" class="section" style="display:none;"></div>
 
         </div>
     </div>
@@ -3327,55 +3347,63 @@
             }
         }
         
-        // تحديد فترة لوحة التحكم حسب اختيار المستخدم
+        // تحديد فترة لوحة التحكم
         function getDashboardPeriodRange() {
-            const select = document.getElementById('dashboardPeriod');
-            const val = select ? select.value : 'from_start';
-            const today = moment().format('YYYY-MM-DD');
-            if (val === 'day') {
-                const from = moment().startOf('day').format('YYYY-MM-DD');
-                return { from, to: today };
-            } else if (val === 'week') {
-                const from = moment().startOf('week').format('YYYY-MM-DD');
-                return { from, to: today };
-            } else if (val === 'month') {
-                const from = moment().subtract(1, 'month').add(1, 'day').format('YYYY-MM-DD');
-                return { from, to: today };
-            } else if (val === 'this_month') {
-                const from = moment().startOf('month').format('YYYY-MM-DD');
-                return { from, to: today };
-            } else if (val === 'prev_month') {
-                const from = moment().subtract(1,'month').startOf('month').format('YYYY-MM-DD');
-                const to = moment().subtract(1,'month').endOf('month').format('YYYY-MM-DD');
-                return { from, to };
-            }
-            // from_start
+            try {
+                const sel = document.getElementById('dashboardPeriod');
+                function byVal(v){
+                    try {
+                        if (v === 'day') { const t = moment().clone().locale('en').format('YYYY-MM-DD'); return { from: t, to: t }; }
+                        if (v === 'week') { const f = moment().startOf('week'); const t = moment(); return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') }; }
+                        if (v === 'month') { const f = moment().clone().subtract(1,'month').add(1,'day'); const t = moment(); return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') }; }
+                        if (v === 'this_month') { const f = moment().startOf('month'); const t = moment(); return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') }; }
+                        if (v === 'prev_month') { const f = moment().clone().subtract(1,'month').startOf('month'); const t = moment().clone().subtract(1,'month').endOf('month'); return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') }; }
+                        return { from: '0000-01-01', to: moment().clone().locale('en').format('YYYY-MM-DD') };
+                    } catch(_) { return { from: '0000-01-01', to: moment().clone().locale('en').format('YYYY-MM-DD') }; }
+                }
+                if (sel && sel.value) return byVal(sel.value);
+                if (typeof PeriodManager!=='undefined' && PeriodManager.getDateRange) {
+                    const r = PeriodManager.getDateRange();
+                    return { from: r.from, to: r.to };
+                }
+            } catch(_) {}
+            // fallback الآمن
+            const today = moment().clone().locale('en').format('YYYY-MM-DD');
             return { from: '0000-01-01', to: today };
         }
         
         // فلترة مصفوفة حسب تاريخ ضمن الفترة
         function filterByDateRange(items, getDate) {
             const { from, to } = getDashboardPeriodRange();
-            return items.filter(item => {
-                const d = (getDate(item) || '').slice(0,10);
-                return d >= from && d <= to;
+            return (items||[]).filter(item => {
+                try{
+                    const raw = (item && item.__d) ? item.__d : (getDate ? getDate(item) : '');
+                    const d = formatDateEn(raw || '');
+                    return d && d >= from && d <= to;
+                }catch(_){ return false; }
             });
         }
         
         // تحديث لوحة التحكم
         function updateDashboard() {
+            try { const r = getDashboardPeriodRange(); console.log('[Dashboard] update range', r); } catch(_){}
+            const D = (typeof window!=='undefined' && window.data) ? window.data : (typeof data!=='undefined'? data : { packages:[], inventory:[], stores:[], sales:[], payments:[], expenses:[] });
             // تحديث الإحصائيات الثابتة
-            document.getElementById('packagesCount').textContent = data.packages.length;
-            document.getElementById('storesCount').textContent = data.stores.length;
+            document.getElementById('packagesCount').textContent = (D.packages||[]).length;
+            document.getElementById('storesCount').textContent = (D.stores||[]).length;
             
             // إجمالي الكروت لا يعتمد على التاريخ
-            const totalCards = data.inventory.reduce((sum, item) => sum + item.quantity, 0);
+            const totalCards = (D.inventory||[]).reduce((sum, item) => sum + (item.quantity||0), 0);
             document.getElementById('totalCards').textContent = formatNumber(totalCards, false);
             
-            // تطبيق الفلاتر الزمنية على مبيعات/تسديدات/مصروفات
-            const filteredSales = filterByDateRange(data.sales, s => s.date);
-            const filteredPayments = filterByDateRange(data.payments, p => p.date);
-            const filteredExpenses = filterByDateRange(data.expenses, e => e.date);
+            // تطبيق الفلاتر الزمنية على مبيعات/تسديدات/مصروفات (مع تطبيع التاريخ)
+            function mapWithIsoDate(arr){
+                return (arr||[]).map(x=>{ try{ const iso = formatDateEn(x.date||''); return Object.assign({ __d: iso }, x); }catch(_){ return Object.assign({ __d: '' }, x); } });
+            }
+            const filteredSales = filterByDateRange(mapWithIsoDate(D.sales), s => s.__d);
+            const filteredPayments = filterByDateRange(mapWithIsoDate(D.payments), p => p.__d);
+            const filteredExpenses = filterByDateRange(mapWithIsoDate(D.expenses), e => e.__d);
+            try { console.log('[Dashboard] counts', { sales: filteredSales.length, payments: filteredPayments.length, expenses: filteredExpenses.length }); } catch(_){ }
             
             // إجمالي المبيعات
             const totalSales = filteredSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
@@ -3386,9 +3414,9 @@
             document.getElementById('totalPaymentsSum').textContent = formatNumber(totalPaymentsSum);
             
             // إجمالي الديون = مجموع (مبيعات كل محل - تسديداته) ضمن الفترة
-            const totalDebtsSum = data.stores.reduce((sum, store) => {
-                const storeSales = filteredSales.reduce((s, sale) => s + (sale.storeId === store.id ? (sale.total || 0) : 0), 0);
-                const storePayments = filteredPayments.reduce((p, payment) => p + (payment.storeId === store.id ? (payment.amount || 0) : 0), 0);
+            const totalDebtsSum = (D.stores||[]).reduce((sum, store) => {
+                const storeSales = filteredSales.reduce((s, sale) => s + (String(sale.storeId) === String(store.id) ? (sale.total || 0) : 0), 0);
+                const storePayments = filteredPayments.reduce((p, payment) => p + (String(payment.storeId) === String(store.id) ? (payment.amount || 0) : 0), 0);
                 return sum + (storeSales - storePayments);
             }, 0);
             document.getElementById('totalDebtsSum').textContent = formatNumber(totalDebtsSum);
@@ -3401,6 +3429,83 @@
             // صافي الأرباح = إجمالي التسديدات - إجمالي المصروفات ضمن الفترة
             const netProfit = totalPaymentsSum - totalExpensesSum;
             document.getElementById('netProfit').textContent = formatNumber(netProfit);
+
+            // تحديث مؤجل لضمان التفوق على أي كتابة متأخرة من دوال أخرى
+            try {
+                const pkgCnt = (D.packages||[]).length;
+                const storeCnt = (D.stores||[]).length;
+                const cardsCnt = totalCards;
+                const salesSum = totalSales;
+                const paySum = totalPaymentsSum;
+                const expSum = totalExpensesSum;
+                const debtsSum = totalDebtsSum;
+                const netSum = netProfit;
+                setTimeout(()=>{
+                    try {
+                        document.getElementById('packagesCount').textContent = pkgCnt;
+                        document.getElementById('storesCount').textContent = storeCnt;
+                        document.getElementById('totalCards').textContent = formatNumber(cardsCnt, false);
+                        const elTS = document.getElementById('totalSales'); if (elTS) elTS.textContent = formatNumber(salesSum);
+                        const elTP = document.getElementById('totalPaymentsSum'); if (elTP) elTP.textContent = formatNumber(paySum);
+                        const elTE = document.getElementById('totalExpensesSum'); if (elTE) elTE.textContent = formatNumber(expSum);
+                        const elTD = document.getElementById('totalDebtsSum'); if (elTD) elTD.textContent = formatNumber(debtsSum);
+                        const elNP = document.getElementById('netProfit'); if (elNP) elNP.textContent = formatNumber(netSum);
+                    } catch(__) {}
+                }, 50);
+            } catch(_) {}
+
+            // Sparklines مبسطة (ASCII) حسب التجميع اليومي/الأسبوعي ضمن الفترة
+            try {
+                const groupSel = document.getElementById('dashboardSparkGroup');
+                const groupBy = groupSel ? groupSel.value : 'day';
+                const { from, to } = getDashboardPeriodRange();
+                // بناء مفاتيح التجميع
+                function keyFor(dateStr){
+                    const d = formatDateEn(dateStr);
+                    if (!d) return '';
+                    if (groupBy === 'week') {
+                        // YYYY-Www تقريبية: استخدم بداية الأسبوع يوم السبت/الأحد حسب moment locale، هنا نبسط إلى أسبوع ISO تقريباً
+                        const m = (typeof moment!=='undefined') ? moment(d) : null;
+                        if (m) return m.isoWeekYear() + '-W' + String(m.isoWeek()).padStart(2,'0');
+                        const dt = new Date(d); const onejan = new Date(dt.getFullYear(),0,1); const week = Math.ceil((((dt - onejan) / 86400000) + onejan.getDay()+1)/7); return dt.getFullYear()+ '-W' + String(week).padStart(2,'0');
+                    }
+                    return d;
+                }
+                function buildSeries(items, getDate, getAmount){
+                    const seriesMap = new Map();
+                    (items||[]).forEach(it=>{
+                        const k = keyFor(getDate(it));
+                        if (!k) return;
+                        let v = seriesMap.get(k)||0; v += (getAmount(it)||0); seriesMap.set(k, v);
+                    });
+                    // ترتيب حسب المفتاح
+                    const entries = Array.from(seriesMap.entries()).sort((a,b)=> a[0] < b[0] ? -1 : 1);
+                    return entries.map(e=> e[1]);
+                }
+                const sSales = buildSeries(filteredSales, s=>s.date, s=> s.total||0);
+                const sPays  = buildSeries(filteredPayments, p=>p.date, p=> p.amount||0);
+                const sExp   = buildSeries(filteredExpenses, e=>e.date, e=> e.amount||0);
+                const sDebt  = sSales.map((v,i)=> v - (sPays[i]||0));
+                const sNet   = sPays.map((v,i)=> v - (sExp[i]||0));
+                function asciiSpark(values){
+                    const el = (v)=> '▁▂▃▄▅▆▇█'[v];
+                    if (!values || values.length===0) return '';
+                    const max = Math.max(...values, 1); const min = Math.min(...values, 0);
+                    const range = Math.max(max - min, 1);
+                    return values.map(x=> { const norm = Math.round(((x - min)/range)*7); return el(Math.min(7, Math.max(0, norm))); }).join('');
+                }
+                const mapIdToSeries = {
+                    spark_sales: sSales,
+                    spark_payments: sPays,
+                    spark_expenses: sExp,
+                    spark_debts: sDebt,
+                    spark_net: sNet
+                };
+                Object.keys(mapIdToSeries).forEach(id=>{
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = asciiSpark(mapIdToSeries[id]);
+                });
+            } catch(_) { /* تجاهل رسومات المصغرات عند الخطأ */ }
             
             // تحديث أحدث الباقات (غير مستخدم إذا لم توجد العناصر)
             const recentPackages = document.getElementById('recentPackages');
@@ -3409,7 +3514,7 @@
                 if (window.$dom && window.$dom.schedule) {
                     window.$dom.schedule(() => {
                         const fragment = document.createDocumentFragment();
-                        const packagesToShow = data.packages.slice(-3).reverse();
+                        const packagesToShow = (D.packages||[]).slice(-3).reverse();
                         packagesToShow.forEach(pkg => {
                             const row = window.$safe && window.$safe.row ? 
                                 window.$safe.row([
@@ -3417,7 +3522,7 @@
                                     {text: pkg.retailPrice ? formatNumber(pkg.retailPrice) : '-', className: 'currency'},
                                     {text: pkg.wholesalePrice ? formatNumber(pkg.wholesalePrice) : '-', className: 'currency'},
                                     {text: pkg.distributorPrice ? formatNumber(pkg.distributorPrice) : '-', className: 'currency'},
-                                    formatNumber(data.inventory.filter(i => i.packageId === pkg.id).reduce((sum, i) => sum + i.quantity, 0))
+                                    formatNumber((D.inventory||[]).filter(i => i.packageId === pkg.id).reduce((sum, i) => sum + (i.quantity||0), 0))
                                 ]) : null;
                             if (row) fragment.appendChild(row);
                         });
@@ -3427,7 +3532,7 @@
                 } else {
                     // الطريقة التقليدية مع تحسينات
                     const fragment = document.createDocumentFragment();
-                    const packagesToShow = data.packages.slice(-3).reverse();
+                    const packagesToShow = (D.packages||[]).slice(-3).reverse();
                     packagesToShow.forEach(pkg => {
                         const row = document.createElement('tr');
                         const cells = [
@@ -3435,7 +3540,7 @@
                             pkg.retailPrice ? formatNumber(pkg.retailPrice) : '-',
                             pkg.wholesalePrice ? formatNumber(pkg.wholesalePrice) : '-',
                             pkg.distributorPrice ? formatNumber(pkg.distributorPrice) : '-',
-                            formatNumber(data.inventory.filter(i => i.packageId === pkg.id).reduce((sum, i) => sum + i.quantity, 0))
+                            formatNumber((D.inventory||[]).filter(i => i.packageId === pkg.id).reduce((sum, i) => sum + (i.quantity||0), 0))
                         ];
                         cells.forEach((content, index) => {
                             const td = document.createElement('td');
@@ -3454,7 +3559,7 @@
             const recentStores = document.getElementById('recentStores');
             if (recentStores) {
                 recentStores.innerHTML = '';
-                const storesToShow = data.stores.slice(-3).reverse();
+                const storesToShow = (D.stores||[]).slice(-3).reverse();
                 storesToShow.forEach(store => {
                     const card = document.createElement('div');
                     card.className = 'store-card';
@@ -4741,14 +4846,31 @@
         
 
 
-        // ربط تغييرات واجهة فترة المصروفات
+        // ربط تغييرات واجهة فترة المصروفات مع الفترة المركزية
         (function(){
             const sel = document.getElementById('expensesPeriod');
             const rangeWrap = document.getElementById('expensesCustomRange');
             const applyBtn = document.getElementById('applyExpensesCustomRange');
             function syncRangeVisibility(){ if (!rangeWrap || !sel) return; rangeWrap.style.display = sel.value === 'custom' ? 'flex' : 'none'; }
-            if (sel){ sel.addEventListener('change', () => { syncRangeVisibility(); renderExpensesTable(); updateDashboard(); updateProfitReport(); }); }
-            if (applyBtn){ applyBtn.addEventListener('click', () => { renderExpensesTable(); updateDashboard(); updateProfitReport(); }); }
+            if (sel){ sel.addEventListener('change', () => {
+                syncRangeVisibility();
+                try {
+                    if (typeof PeriodManager!=='undefined') {
+                        if (sel.value === 'custom') { /* ينتظر زر تطبيق */ }
+                        else { PeriodManager.setPeriod(sel.value); }
+                    } else {
+                        renderExpensesTable(); updateDashboard(); updateProfitReport();
+                    }
+                } catch(_) { renderExpensesTable(); updateDashboard(); updateProfitReport(); }
+            }); }
+            if (applyBtn){ applyBtn.addEventListener('click', () => {
+                try {
+                    const f = document.getElementById('expensesFrom')?.value || '';
+                    const t = document.getElementById('expensesTo')?.value || '';
+                    if (typeof PeriodManager!=='undefined') PeriodManager.setPeriod('custom', { from: f, to: t });
+                    else { renderExpensesTable(); updateDashboard(); updateProfitReport(); }
+                } catch(_) { renderExpensesTable(); updateDashboard(); updateProfitReport(); }
+            }); }
             syncRangeVisibility();
         })();
         
@@ -4986,8 +5108,9 @@
             html += '<!doctype html>';
             html += '<html lang="ar" dir="rtl">';
             html += '<head><meta charset="utf-8">';
-            html += '<title>كشف حساب: ' + store.name + '</title>';
+            html += '<title>' + (window.APP_NAME || 'فاست لينك - حسابات') + ' | كشف حساب: ' + store.name + '</title>';
             html += '<style>' +
+                    '.app-brandline{ text-align:center; font-size:12px; color:#0ea5e9; margin:4px 0; font-weight:600; }' +
                     "@font-face { font-family:'AmiriExport'; src: url('" + fontUrl + "') format('woff2'); font-weight:400; font-style:normal; }" +
                     "body { font-family:'AmiriExport','Arial',sans-serif; padding:16px; }" +
                     '.summary{ display:flex; gap:12px; justify-content:flex-end; margin:10px 0; }' +
@@ -5001,6 +5124,7 @@
                     '@page{ size:A4; margin:12mm; }' +
                 '</style></head>';
             html += '<body>';
+            html += '<div class="app-brandline">' + (window.APP_NAME || 'فاست لينك - حسابات') + '</div>';
             html += '<div class="actions"><button onclick="window.print()">حفظ التقرير كـ PDF</button></div>';
             html += '<h3>كشف حساب: ' + store.name + '</h3>';
             html += '<div>الفترة: ' + periodText + ' | تاريخ التصدير: ' + (new Date()).toISOString().slice(0,10) + '</div>';
@@ -6074,17 +6198,97 @@
             const currentVisible = document.querySelector('.section:not([style*="display: none"])') || document.getElementById('dashboard');
             if (currentVisible) currentVisible.classList.add('show');
 
-            // مستمع لتغيير مدة الحساب في لوحة التحكم
+            // مستمع لتغيير مدة الحساب في لوحة التحكم (آمن مع PeriodManager)
             const dashboardPeriodSelect = document.getElementById('dashboardPeriod');
             if (dashboardPeriodSelect) {
+                let periodDebounce;
+                function applyPeriod(){
+                    try {
+                        if (typeof PeriodManager!=='undefined') {
+                            PeriodManager.setPeriod(dashboardPeriodSelect.value);
+                        }
+                    } catch(_) {}
+                    // تحديث فوري حتى لو فات الحدث
+                    try { updateDashboard(); updateProfitReport(); generateDebtReport(); generatePartnerReports(); } catch(__){}
+                }
                 dashboardPeriodSelect.addEventListener('change', () => {
-                    updateDashboard();
-                    updateProfitReport();
-                    generateDebtReport();
-                    generatePartnerReports();
+                    clearTimeout(periodDebounce);
+                    periodDebounce = setTimeout(applyPeriod, 200);
                 });
+                // مزامنة قيمة القائمة مع الفترة الحالية عند التحميل
+                try { if (typeof PeriodManager!=='undefined' && PeriodManager.getPeriod) { const p = PeriodManager.getPeriod(); if (p && p.id && dashboardPeriodSelect.querySelector(`option[value="${p.id}"]`)) { dashboardPeriodSelect.value = p.id; } } } catch(_){}
+            }
+            // تحديث لوحة التحكم عند تغير الفترة المركزية (مباشر وبعد نبضة قصيرة لضمان الاستقرار)
+            document.addEventListener('periodChanged', function(){
+                try { updateDashboard(); } catch(_){ }
+                try { setTimeout(()=>{ try{ updateDashboard(); }catch(__){} }, 50); } catch(_){ }
+            });
+            // تحديث sparklines عند تغيير تجميع الرسم
+            const sparkGroup = document.getElementById('dashboardSparkGroup');
+            if (sparkGroup) {
+                sparkGroup.addEventListener('change', () => { try { updateDashboard(); } catch(_){} });
             }
             
+            // شارة حالة المزامنة (آمنة) + عناصر تحكم سريعة وعرض آخر مزامنة
+            (function(){
+                const badge = document.getElementById('syncBadge');
+                const headerActions = document.querySelector('.header-bar > div');
+                function fmtNow(){ try { return moment().format('YYYY-MM-DD HH:mm'); } catch(_) { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0')+" "+String(d.getHours()).padStart(2,'0')+":"+String(d.getMinutes()).padStart(2,'0'); } }
+                function getLastSync(){ try { return localStorage.getItem('lastSyncTime') || ''; } catch(_) { return ''; } }
+                function setLastSync(){ try { localStorage.setItem('lastSyncTime', fmtNow()); } catch(_) {} }
+                function setBadge(text, cls){ if(!badge) return; badge.className = 'badge ' + cls; badge.textContent = text; badge.classList.remove('d-none'); }
+                function ensureControls(){
+                  if (!headerActions || document.getElementById('syncNowBtn')) return;
+                  const syncBtn = document.createElement('button');
+                  syncBtn.id = 'syncNowBtn';
+                  syncBtn.type = 'button';
+                  syncBtn.className = 'btn btn-sm btn-outline-success ms-2';
+                  syncBtn.innerHTML = '<i class="fas fa-sync"></i> مزامنة الآن';
+                  const reloadBtn = document.createElement('button');
+                  reloadBtn.id = 'reloadFromCloudBtn';
+                  reloadBtn.type = 'button';
+                  reloadBtn.className = 'btn btn-sm btn-outline-info ms-2';
+                  reloadBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> استرجاع';
+                  const last = document.createElement('span');
+                  last.id = 'lastSyncTime';
+                  last.className = 'text-muted ms-2 small';
+                  last.textContent = getLastSync() ? ('آخر مزامنة: ' + getLastSync()) : '';
+                  headerActions.appendChild(syncBtn);
+                  headerActions.appendChild(reloadBtn);
+                  headerActions.appendChild(last);
+                  syncBtn.addEventListener('click', async ()=>{
+                    try{
+                      if (typeof GithubSync==='undefined') return;
+                      await GithubSync.upload();
+                      setLastSync();
+                      const el = document.getElementById('lastSyncTime'); if (el) el.textContent = 'آخر مزامنة: ' + getLastSync();
+                      setBadge('تمت المزامنة', 'bg-success');
+                    }catch(_){ setBadge('تعذر المزامنة', 'bg-warning'); }
+                  });
+                  reloadBtn.addEventListener('click', async ()=>{
+                    try{
+                      if (typeof GithubSync==='undefined') return;
+                      await GithubSync.download();
+                      setLastSync();
+                      const el = document.getElementById('lastSyncTime'); if (el) el.textContent = 'آخر مزامنة: ' + getLastSync();
+                      setBadge('تم الاسترجاع', 'bg-primary');
+                    }catch(_){ setBadge('تعذر الاسترجاع', 'bg-warning'); }
+                  });
+                }
+                async function refresh(){
+                    try{
+                        if (typeof GithubSync==='undefined' || !GithubSync.getSettings) { return; }
+                        const s = GithubSync.getSettings();
+                        ensureControls();
+                        const last = document.getElementById('lastSyncTime'); if (last && getLastSync()) last.textContent = 'آخر مزامنة: ' + getLastSync();
+                        if (!s || (!s.token && !s.gistId)) { setBadge('غير مهيأة', 'bg-secondary'); return; }
+                        const res = await GithubSync.testConnection();
+                        if (res && res.ok) { setBadge(res.hasFile ? 'متصل • ملف موجود' : 'متصل • لا يوجد ملف', 'bg-success'); }
+                        else { setBadge('تعذر الاتصال', 'bg-warning'); }
+                    } catch(_) { /* تجاهل */ }
+                }
+                setTimeout(refresh, 300);
+            })();
             // تنظيف backdrop عند إغلاق أي modal
             document.addEventListener('hidden.bs.modal', function (event) {
                 setTimeout(cleanupModalBackdrops, 100);
@@ -6178,7 +6382,7 @@
     <script src="./js/backupManager.js"></script>
     <script src="./js/expensesTypes.js"></script>
     <script src="./js/trash.js"></script>
-    <script src="./js/parityCheck.js"></script>
+    <script src="./js/about.js"></script>
 
 
 
@@ -6202,7 +6406,7 @@
             <li class="nav-item"><a class="nav-link" href="#" data-section="importExport"><i class="fas fa-exchange-alt"></i> الاستيراد والتصدير</a></li>
             <li class="nav-item"><a class="nav-link" href="#" data-section="trash"><i class="fas fa-trash"></i> سلة المحذوفات</a></li>
             <li class="nav-item"><a class="nav-link" href="#" data-section="settings"><i class="fas fa-cog"></i> الإعدادات</a></li>
-            <li class="nav-item"><a class="nav-link" href="#" data-section="parityCheck"><i class="fas fa-balance-scale"></i> فحص التطابق</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-section="about"><i class="fas fa-info-circle"></i> حول التطبيق</a></li>
         </ul>
     </div>
 

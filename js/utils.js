@@ -296,7 +296,7 @@ function switchSection(targetSection, labelText) {
   if (targetSection === 'reports') if (typeof generatePartnerReports === 'function') generatePartnerReports();
   if (targetSection === 'trash') if (typeof renderTrashTable === 'function') setTimeout(() => renderTrashTable(), 100);
   if (targetSection === 'settings') if (typeof SettingsUI !== 'undefined' && SettingsUI.init) SettingsUI.init();
-  if (targetSection === 'parityCheck') if (typeof ParityCheck !== 'undefined' && ParityCheck.render) ParityCheck.render();
+  if (targetSection === 'about') if (typeof About !== 'undefined' && About.render) About.render();
 }
 
 /**
@@ -489,6 +489,75 @@ function refreshCurrentView() {
 // يجعل الدوال متاحة في جميع الملفات الأخرى
 // التحقق من وجود window لتجنب الأخطاء في بيئة Node.js
 if (typeof window !== 'undefined') {
+  // اسم التطبيق المركزي للاستخدام عبر المشروع
+  if (typeof window.APP_NAME === 'undefined') {
+    window.APP_NAME = 'فاست لينك - حسابات';
+  }
+  // وصف وإصدار التطبيق
+  if (typeof window.APP_DESCRIPTION === 'undefined') {
+    window.APP_DESCRIPTION = 'تطبيق ادارة المبيعات والمصروفات والمخزون ومتابعة الديون والمحلات وتقارير مفصلة للارباح والخسائر وحساب ارباح الشركاء - كل ماتحتاجه في مكان واحد';
+  }
+  if (typeof window.APP_VERSION === 'undefined') {
+    window.APP_VERSION = '01.06';
+  }
+  // PeriodManager — مصدر حقيقة واحد للفترة
+  if (typeof window.PeriodManager === 'undefined') {
+    (function(){
+      const DEFAULT_ID = 'this_month';
+      let state = { id: DEFAULT_ID, from: null, to: null };
+      function clampDate(str){ try{ const s = formatDateEn(str); if (!s) return null; const y = parseInt(s.slice(0,4)); if (y<1900||y>2100) return null; return s; }catch(_){ return null; } }
+      function rangeFor(id, from=null, to=null){
+        try {
+          if (id === 'day') {
+            const now = moment(); const t = now.clone().locale('en').format('YYYY-MM-DD');
+            return { from: t, to: t };
+          }
+          if (id === 'week') {
+            const f = moment().startOf('week'); const t = moment();
+            return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') };
+          }
+          if (id === 'month') {
+            const f = moment().clone().subtract(1,'month').add(1,'day'); const t = moment();
+            return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') };
+          }
+          if (id === 'this_month') {
+            const f = moment().startOf('month'); const t = moment();
+            return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') };
+          }
+          if (id === 'prev_month') {
+            const f = moment().clone().subtract(1,'month').startOf('month');
+            const t = moment().clone().subtract(1,'month').endOf('month');
+            return { from: f.clone().locale('en').format('YYYY-MM-DD'), to: t.clone().locale('en').format('YYYY-MM-DD') };
+          }
+          if (id === 'custom') {
+            const F = clampDate(from), T = clampDate(to);
+            if (F && T && F <= T) return {from:F,to:T};
+            const today = moment().clone().locale('en').format('YYYY-MM-DD');
+            return {from: today, to: today};
+          }
+          // from_start
+          return {from:'0000-01-01', to: moment().clone().locale('en').format('YYYY-MM-DD')};
+        } catch(_) { const today = moment().clone().locale('en').format('YYYY-MM-DD'); return {from: '0000-01-01', to: today}; }
+      }
+      function setPeriod(id, opts){
+        try{
+          const cfg = opts || {}; const r = rangeFor(id||state.id, cfg.from, cfg.to);
+          state = { id: id||state.id, from: r.from, to: r.to };
+          document.dispatchEvent(new CustomEvent('periodChanged', { detail: { id: state.id, from: state.from, to: state.to } }));
+        }catch(_){ /* لا تنهار */ }
+      }
+      function getPeriod(){ return Object.assign({}, state); }
+      function getDateRange(){ return { from: state.from, to: state.to }; }
+      function onChange(cb){ document.addEventListener('periodChanged', e=>{ try{ cb && cb(e.detail); }catch(_){ } }); }
+      window.PeriodManager = { setPeriod, getPeriod, getDateRange, onChange };
+      // تعيين فترة البداية من الإعدادات إن وجدت
+      try {
+        const s = (typeof AppSettings!=='undefined') ? AppSettings.getAll() : null;
+        const def = s && s.display && s.display.defaultPeriod ? s.display.defaultPeriod : DEFAULT_ID;
+        setPeriod(def);
+      } catch(_) { setPeriod(DEFAULT_ID); }
+    })();
+  }
   window.toEnglishDigits = toEnglishDigits;
   window.formatNumber = formatNumber;
   window.parseFormattedNumber = parseFormattedNumber;
@@ -595,6 +664,7 @@ if (typeof window !== 'undefined') {
       if (!splash) return;
       // نص الحقوق من ملفات الحقوق في المشروع (مختصر جميل)
       const rightsEl = document.getElementById('splashRights');
+      const descEl = document.getElementById('splashDesc');
       const year = new Date().getFullYear();
       const rightsHtml = `
         <div>جميع الحقوق محفوظة © ${year}</div>
@@ -602,6 +672,11 @@ if (typeof window !== 'undefined') {
         <div class="mt-2" style="font-size:12px; opacity:.8;">يُحظر النسخ أو التوزيع بدون إذن</div>
       `;
       if (typeof setHTML === 'function') { setHTML(rightsEl, rightsHtml); } else { rightsEl.innerHTML = rightsHtml; }
+      if (descEl) descEl.textContent = (typeof window.APP_DESCRIPTION !== 'undefined') ? window.APP_DESCRIPTION : '';
+      const verEl = document.getElementById('appVersionLabel');
+      if (verEl && typeof window.APP_VERSION !== 'undefined') {
+        verEl.textContent = 'الإصدار ' + window.APP_VERSION;
+      }
       splash.style.display = 'flex';
       // إخفاء بعد أول تفاعل أو بعد مهلة قصيرة
       const hide = ()=> { splash.classList.add('fade-out'); setTimeout(()=>{ splash.style.display='none'; }, 600); document.removeEventListener('click', hide); };

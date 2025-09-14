@@ -473,6 +473,12 @@ function buildReportHeader(title = 'تقرير') {
   const settings = getReportSettings();
   let headerHTML = '';
   
+  // سطر اسم التطبيق في الأعلى بخط صغير وفي المنتصف
+  try {
+    const appNameTop = (typeof window !== 'undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات';
+    headerHTML += `<div class="app-brandline">${appNameTop}</div>`;
+  } catch(_) {}
+  
   headerHTML += '<div class="report-header">';
   headerHTML += '<div class="company-section">';
   // إضافة شعار الشركة إن توفّر من الإعدادات وإلا شعار التطبيق الافتراضي
@@ -600,6 +606,14 @@ function getReportStyles() {
       size: ${settings.paperSize} ${settings.orientation}; 
       margin: ${settings.margins.top}mm ${settings.margins.right}mm ${settings.margins.bottom}mm ${settings.margins.left}mm;
     }
++    .app-brandline {
++      text-align: center;
++      font-size: 12px;
++      color: #0ea5e9;
++      margin-top: 4px;
++      margin-bottom: 4px;
++      font-weight: 600;
++    }
     body { font-family: 'Arial', sans-serif; padding: 16px; direction: rtl; margin: 0; background:#f8fafc; }
     .report-header { border-bottom: 3px solid #0ea5e9; padding-bottom: 20px; margin-bottom: 20px; background:linear-gradient(90deg,#e0f2fe,#f0f9ff); }
     .company-section {
@@ -720,7 +734,7 @@ function buildPartnerReportHTML(periodText, partnersCount, paysList, expsList, t
   const settings = getReportSettings();
   let html='';
   html += '<!doctype html><html lang="ar" dir="rtl">';
-  html += '<head><meta charset="utf-8"><title>تقرير الشركاء</title>';
+  html += '<head><meta charset="utf-8"><title>' + (window.APP_NAME || 'فاست لينك - حسابات') + ' | تقرير الشركاء</title>';
   html += '<style>' + getReportStyles() + '</style></head>';
   html += '<body>';
   html += '<div class="actions"><button onclick="window.print()">حفظ التقرير كـ PDF</button></div>';
@@ -866,8 +880,8 @@ function exportPartnerReport() {
   }
   
   const { fromDate, toDate } = getPeriodRange();
-  const sales = (data.sales || []).filter(s=> inPeriod(s.date, fromDate, toDate) && isStoreMatch(s));
-  const expenses = (data.expenses || []).filter(e=> inPeriod(e.date, fromDate, toDate) && isStoreMatch(e));
+  const sales = (data.sales || []).filter(s=> inPeriod(formatDateEn(s.date||''), fromDate, toDate) && isStoreMatch(s));
+  const expenses = (data.expenses || []).filter(e=> inPeriod(formatDateEn(e.date||''), fromDate, toDate) && isStoreMatch(e));
   const totalSales = sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
   const totalExpenses = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
   const netProfit = totalSales - totalExpenses;
@@ -1051,7 +1065,7 @@ function buildAccountStatementHTML(store, periodText, allTransactions, previousB
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
-    <title>كشف حساب متحرك - ${store.name}</title>
+    <title>${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'} | كشف حساب متحرك - ${store.name}</title>
     <style>
         ${getReportStyles()}
         .report-container {
@@ -1566,7 +1580,7 @@ function buildStoreReportHTML(store, periodText, mappedSalesForExport, mappedPay
   
   let html = '';
   html += '<!doctype html><html lang="ar" dir="rtl">';
-  html += '<head><meta charset="utf-8"><title>كشف حساب: ' + store.name + '</title>';
+  html += '<head><meta charset="utf-8"><title>' + ((typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات') + ' | كشف حساب: ' + store.name + '</title>';
   html += '<style>' + getReportStyles() + '</style></head>';
   html += '<body>';
   html += '<div class="actions"><button onclick="window.print()">حفظ التقرير كـ PDF</button></div>';
@@ -1642,7 +1656,7 @@ function buildExpensesReportHTML(expensesRows, periodText) {
 
   let html = '';
   html += '<!doctype html><html lang="ar" dir="rtl">';
-  html += '<head><meta charset="utf-8"><title>تقرير المصروفات</title>';
+  html += '<head><meta charset="utf-8"><title>' + ((typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات') + ' | تقرير المصروفات</title>';
   html += '<style>' + getReportStyles() + '</style></head>';
   html += '<body>';
   html += '<div class="actions"><button onclick="window.print()">حفظ التقرير كـ PDF</button></div>';
@@ -2159,22 +2173,24 @@ function generatePartnerReportData() {
  * المخرجات: راجع التنفيذ
  */
 function getPeriodRange(reportType) {
-  // إذا تم تمرير نوع التقرير، استخدم العناصر الخاصة به
+  try {
+    if (typeof PeriodManager!=='undefined' && PeriodManager.getDateRange) {
+      const r = PeriodManager.getDateRange();
+      return { fromDate: r.from, toDate: r.to };
+    }
+  } catch(_) {}
+  // مسار سابق للتوافق
   if (reportType) {
     const periodSelect = document.getElementById(`${reportType}Period`);
     const period = periodSelect ? periodSelect.value : 'this_month';
-    
     if (period === 'custom') {
       const fromDate = document.getElementById(`${reportType}FromDate`)?.value || moment().startOf('month').format('YYYY-MM-DD');
       const toDate = document.getElementById(`${reportType}ToDate`)?.value || moment().format('YYYY-MM-DD');
       return { fromDate, toDate };
     }
-    
     return getPeriodRangeByValue(period);
   }
-  
-  // السلوك الافتراضي القديم للتوافق مع الكود الموجود
-  const f = document.getElementById('reportFromDate'); 
+  const f = document.getElementById('reportFromDate');
   const t = document.getElementById('reportToDate');
   const fromDate = formatDateEn((f && f.value) || moment().startOf('month').format('YYYY-MM-DD'));
   const toDate = formatDateEn((t && t.value) || moment().format('YYYY-MM-DD'));
@@ -2217,7 +2233,8 @@ function renderQuickSummaries(){
     console.warn('البيانات غير متوفرة في renderQuickSummaries');
     return;
   }
-  const { fromDate, toDate } = getPeriodRange('summaries');
+  const rSumm = (typeof PeriodManager!=='undefined' && PeriodManager.getDateRange) ? PeriodManager.getDateRange() : (typeof getPeriodRange==='function' ? getPeriodRange('summaries') : {fromDate: moment().startOf('month').format('YYYY-MM-DD'), toDate: moment().format('YYYY-MM-DD')});
+  const fromDate = rSumm.from || rSumm.fromDate; const toDate = rSumm.to || rSumm.toDate;
   const end = moment(toDate);
   let start = moment(fromDate);
   // احمِ الأداء: في حال كانت الفترة طويلة جدًا، اعرض آخر 365 يومًا فقط
@@ -2243,9 +2260,9 @@ function renderQuickSummaries(){
     }
     return days.map(d=> map.get(d)||0);
   }
-  const sales = (data.sales || []).filter(s=> inPeriod(s.date, days[0], days[days.length-1]) && isStoreMatch(s));
-  const payments = (data.payments || []).filter(p=> inPeriod(p.date, days[0], days[days.length-1]) && isStoreMatch(p));
-  const expenses = (data.expenses || []).filter(e=> inPeriod(e.date, days[0], days[days.length-1]) && isStoreMatch(e));
+  const sales = (data.sales || []).filter(s=> inPeriod(formatDateEn(s.date||''), days[0], days[days.length-1]) && isStoreMatch(s));
+  const payments = (data.payments || []).filter(p=> inPeriod(formatDateEn(p.date||''), days[0], days[days.length-1]) && isStoreMatch(p));
+  const expenses = (data.expenses || []).filter(e=> inPeriod(formatDateEn(e.date||''), days[0], days[days.length-1]) && isStoreMatch(e));
   const salesSeries = aggregateDaily(sales, s=>s.date, s=>s.total||0);
   const paymentsSeries = aggregateDaily(payments, p=>p.date, p=>p.amount||0);
   const expensesSeries = aggregateDaily(expenses, e=>e.date, e=>e.amount||0);
@@ -2891,8 +2908,9 @@ function buildPrintPageHTML(title, period, data, type) {
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
-    <title>${title}</title>
+    <title>${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'} | ${title}</title>
     <style>
+        .app-brandline { text-align: center; font-size: 12px; color: #0ea5e9; margin: 4px 0; font-weight: 600; }
         body { font-family: Arial, sans-serif; padding: 20px; }
         .header { text-align: center; margin-bottom: 30px; }
         .content { margin: 20px 0; }
@@ -2903,6 +2921,7 @@ function buildPrintPageHTML(title, period, data, type) {
     </style>
 </head>
 <body>
+    <div class="app-brandline">${(typeof window!=='undefined' && window.APP_NAME) ? window.APP_NAME : 'فاست لينك - حسابات'}</div>
     <div class="header">
         <h1>${title}</h1>
         <p>المدة: ${period}</p>
@@ -3110,31 +3129,43 @@ function wireAdditionalReportsExports() {
   const profitPeriod = document.getElementById('profitPeriod');
   
   if (summariesPeriod && !summariesPeriod.dataset._wired) {
-    summariesPeriod.addEventListener('change', () => {
-      syncCustomRange('summaries');
-      if (summariesPeriod.value !== 'custom') {
-        renderQuickSummaries();
-      }
+    summariesPeriod.addEventListener('change', (e) => {
+      try {
+        const val = summariesPeriod.value;
+        syncCustomRange('summaries');
+        if (val !== 'custom') {
+          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod && e && e.isTrusted) PeriodManager.setPeriod(val);
+          else renderQuickSummaries();
+        }
+      } catch(_) { try{ renderQuickSummaries(); }catch(__){} }
     });
     summariesPeriod.dataset._wired = '1';
   }
   
   if (debtsPeriod && !debtsPeriod.dataset._wired) {
-    debtsPeriod.addEventListener('change', () => {
-      syncCustomRange('debts');
-      if (debtsPeriod.value !== 'custom') {
-        generateDebtReport();
-      }
+    debtsPeriod.addEventListener('change', (e) => {
+      try{
+        const val = debtsPeriod.value;
+        syncCustomRange('debts');
+        if (val !== 'custom') {
+          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod && e && e.isTrusted) PeriodManager.setPeriod(val);
+          else generateDebtReport();
+        }
+      }catch(_) { try{ generateDebtReport(); }catch(__){} }
     });
     debtsPeriod.dataset._wired = '1';
   }
   
   if (profitPeriod && !profitPeriod.dataset._wired) {
-    profitPeriod.addEventListener('change', () => {
-      syncCustomRange('profit');
-      if (profitPeriod.value !== 'custom') {
-        updateProfitReport();
-      }
+    profitPeriod.addEventListener('change', (e) => {
+      try{
+        const val = profitPeriod.value;
+        syncCustomRange('profit');
+        if (val !== 'custom') {
+          if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod && e && e.isTrusted) PeriodManager.setPeriod(val);
+          else updateProfitReport();
+        }
+      }catch(_) { try{ updateProfitReport(); }catch(__){} }
     });
     profitPeriod.dataset._wired = '1';
   }
@@ -3145,18 +3176,49 @@ function wireAdditionalReportsExports() {
   const profitApply = document.getElementById('applyProfitRange');
   
   if (summariesApply && !summariesApply.dataset._wired) {
-    summariesApply.addEventListener('click', () => renderQuickSummaries());
+    summariesApply.addEventListener('click', () => {
+      try {
+        const from = document.getElementById('summariesFromDate')?.value || '';
+        const to = document.getElementById('summariesToDate')?.value || '';
+        if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod('custom', { from, to });
+        else renderQuickSummaries();
+      } catch(_) { try{ renderQuickSummaries(); }catch(__){} }
+    });
     summariesApply.dataset._wired = '1';
   }
   
   if (debtsApply && !debtsApply.dataset._wired) {
-    debtsApply.addEventListener('click', () => generateDebtReport());
+    debtsApply.addEventListener('click', () => {
+      try {
+        const from = document.getElementById('debtsFromDate')?.value || '';
+        const to = document.getElementById('debtsToDate')?.value || '';
+        if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod('custom', { from, to });
+        else generateDebtReport();
+      } catch(_) { try{ generateDebtReport(); }catch(__){} }
+    });
     debtsApply.dataset._wired = '1';
   }
   
   if (profitApply && !profitApply.dataset._wired) {
-    profitApply.addEventListener('click', () => updateProfitReport());
+    profitApply.addEventListener('click', () => {
+      try {
+        const from = document.getElementById('profitFromDate')?.value || '';
+        const to = document.getElementById('profitToDate')?.value || '';
+        if (typeof PeriodManager!=='undefined' && PeriodManager.setPeriod) PeriodManager.setPeriod('custom', { from, to });
+        else updateProfitReport();
+      } catch(_) { try{ updateProfitReport(); }catch(__){} }
+    });
     profitApply.dataset._wired = '1';
+  }
+
+  // إعادة توليد جميع التقارير عند تغيير الفترة المركزية
+  if (!window.__reportsPeriodWired) {
+    document.addEventListener('periodChanged', function(){
+      try{ renderQuickSummaries(); }catch(_){}
+      try{ generateDebtReport(); }catch(_){}
+      try{ updateProfitReport(); }catch(_){}
+    });
+    window.__reportsPeriodWired = true;
   }
 }
 

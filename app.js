@@ -188,6 +188,7 @@ async function githubUploadData() {
         if (typeof showNotification === 'function') showNotification('فشل رفع البيانات إلى جيت هب', 'error');
         return;
     }
+    try { localStorage.setItem('lastSyncTime', (typeof moment!=='undefined' ? moment().format('YYYY-MM-DD HH:mm') : new Date().toISOString().slice(0,16).replace('T',' '))); } catch(_){ }
     if (typeof showNotification === 'function') showNotification('تم رفع البيانات إلى جيت هب بنجاح', 'success');
 }
 
@@ -241,6 +242,7 @@ async function githubDownloadData() {
         const parsed = (typeof safeJsonParse === 'function' && typeof FeatureFlags !== 'undefined' && FeatureFlags.isEnabled('safeJsonParse')) ? safeJsonParse(text, {}) : JSON.parse(text);
         if (typeof data !== 'undefined') { data = parsed; } else { window.data = parsed; }
         localStorage.setItem('networkCardsData', JSON.stringify(parsed));
+        try { localStorage.setItem('lastSyncTime', (typeof moment!=='undefined' ? moment().format('YYYY-MM-DD HH:mm') : new Date().toISOString().slice(0,16).replace('T',' '))); } catch(_){ }
         if (typeof updateDashboard === 'function') updateDashboard();
         if (typeof renderPackagesTable === 'function') renderPackagesTable();
         if (typeof renderInventoryTable === 'function') renderInventoryTable();
@@ -253,6 +255,42 @@ async function githubDownloadData() {
     } catch (e) {
         if (typeof showNotification === 'function') showNotification('صيغة بيانات غير صحيحة', 'error');
     }
+}
+
+// واجهة مزامنة عامة للاستخدام من الإعدادات
+if (typeof window !== 'undefined') {
+  window.GithubSync = {
+    getSettings() {
+      try { return Object.assign({}, githubSettings); } catch(_) { return {}; }
+    },
+    setSettings(updates) {
+      try { githubSettings = Object.assign(githubSettings, updates || {}); return true; } catch(_) { return false; }
+    },
+    save() { try { saveGithubSettings(); return true; } catch(_) { return false; } },
+    load() { try { loadGithubSettings(); return true; } catch(_) { return false; } },
+    async createGist() { try { await githubCreateGist(); return true; } catch(_) { return false; } },
+    async upload() { try { await githubUploadData(); return true; } catch(_) { return false; } },
+    async download() { try { await githubDownloadData(); return true; } catch(_) { return false; } },
+    async testConnection() {
+      try {
+        if (!githubSettings.gistId) {
+          return { ok: false, message: 'Gist ID غير مضبوط' };
+        }
+        const headers = { 'Accept': 'application/vnd.github+json' };
+        if (githubSettings.token) headers['Authorization'] = `Bearer ${githubSettings.token}`;
+        const res = await fetch(`https://api.github.com/gists/${githubSettings.gistId}`, { headers });
+        if (!res.ok) {
+          return { ok: false, status: res.status, message: 'تعذر الوصول إلى الـ Gist' };
+        }
+        const meta = await res.json();
+        const fileName = githubSettings.fileName || 'network-cards.json';
+        const exists = !!(meta && meta.files && (meta.files[fileName] || Object.values(meta.files||{})[0]));
+        return { ok: true, hasFile: exists, message: exists ? 'الاتصال ناجح والملف موجود' : 'الاتصال ناجح لكن الملف غير موجود' };
+      } catch (e) {
+        return { ok: false, message: 'فشل الاختبار: تحقق من الشبكة أو الإعدادات' };
+      }
+    }
+  };
 }
 
 /**

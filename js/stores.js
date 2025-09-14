@@ -1600,3 +1600,47 @@ window.showCustomDateFilter = showCustomDateFilter;
 window.applyCustomDateFilter = applyCustomDateFilter;
 window.toggleFilterType = toggleFilterType;
 window.switchView = switchView;
+// مزامنة فلترة المحلات مع الفترة المركزية (باستثناء الدورات المالية)
+(function(){
+  try {
+    if (window.__storesPeriodWired) return;
+    window.__storesPeriodWired = true;
+    document.addEventListener('periodChanged', function(ev){
+      try {
+        const storeId = document.querySelector('#storeHeader [data-id]')?.dataset.id;
+        if (!storeId || !window.storeFilter) return;
+        const active = window.storeFilter.getActiveStoreFilter(storeId);
+        if (!active) return;
+        // لا نتدخل عندما تكون الفلترة هي "دورة مالية"
+        if (active.type === window.storeFilter.FILTER_TYPES.CYCLE) return;
+        const detail = ev && ev.detail ? ev.detail : null;
+        if (!detail || !detail.id) { updateStoreDetailsWithFilter(storeId); return; }
+        // تعيين فلترة زمنية مكافئة للفترة المركزية
+        const map = {
+          from_start: 'all_time',
+          day: 'today',
+          week: 'last_7_days',
+          month: 'last_30_days',
+          this_month: 'this_month',
+          prev_month: 'last_month'
+        };
+        if (detail.id === 'custom') {
+          const include = (active.data && active.data.includeTypes) ? active.data.includeTypes.slice() : ['sales','payments'];
+          const filter = {
+            type: 'custom',
+            id: 'custom_range',
+            data: { startDate: detail.from, endDate: detail.to, includeTypes: include },
+            description: 'فترة مخصصة',
+            subtitle: `${detail.from} - ${detail.to}`
+          };
+          window.storeFilter.setActiveStoreFilter(storeId, filter);
+          updateFilterButton(storeId, filter);
+          updateStoreDetailsWithFilter(storeId);
+        } else {
+          const quickId = map[detail.id] || 'all_time';
+          applyFilter(storeId, 'time', quickId);
+        }
+      } catch (_) { /* تجاهل أي خطأ بسيط */ }
+    });
+  } catch (_) { /* لا شيء */ }
+})();
