@@ -188,6 +188,7 @@ async function githubUploadData() {
         if (typeof showNotification === 'function') showNotification('فشل رفع البيانات إلى جيت هب', 'error');
         return;
     }
+    try { localStorage.setItem('lastSyncTime', (typeof moment!=='undefined' ? moment().format('YYYY-MM-DD HH:mm') : new Date().toISOString().slice(0,16).replace('T',' '))); } catch(_){ }
     if (typeof showNotification === 'function') showNotification('تم رفع البيانات إلى جيت هب بنجاح', 'success');
 }
 
@@ -241,6 +242,7 @@ async function githubDownloadData() {
         const parsed = (typeof safeJsonParse === 'function' && typeof FeatureFlags !== 'undefined' && FeatureFlags.isEnabled('safeJsonParse')) ? safeJsonParse(text, {}) : JSON.parse(text);
         if (typeof data !== 'undefined') { data = parsed; } else { window.data = parsed; }
         localStorage.setItem('networkCardsData', JSON.stringify(parsed));
+        try { localStorage.setItem('lastSyncTime', (typeof moment!=='undefined' ? moment().format('YYYY-MM-DD HH:mm') : new Date().toISOString().slice(0,16).replace('T',' '))); } catch(_){ }
         if (typeof updateDashboard === 'function') updateDashboard();
         if (typeof renderPackagesTable === 'function') renderPackagesTable();
         if (typeof renderInventoryTable === 'function') renderInventoryTable();
