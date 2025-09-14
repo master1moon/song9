@@ -440,21 +440,36 @@ function renderExpensesTable() {
         else if (period === 'custom') { const fromInp = document.getElementById('expensesFrom'); const toInp = document.getElementById('expensesTo'); if (fromInp && fromInp.value) from = fromInp.value; if (toInp && toInp.value) to = toInp.value; }
       }
     } catch(_){ }
-    let filtered = data.expenses.filter(exp => { const d = (exp.date || '').slice(0, 10); return d >= from && d <= to; });
+    let filtered = data.expenses.filter(exp => { try { const d = formatDateEn(exp.date || ''); return d && d >= from && d <= to; } catch(_) { return false; } });
     const { pageItems, total, pages } = applySearchSortPaginate(filtered);
     const totalExpenses = filtered.reduce((sum, expense) => sum + (expense.amount || 0), 0);
     const totalExpensesEl = document.getElementById('totalExpenses'); if (totalExpensesEl) totalExpensesEl.textContent = formatNumber(totalExpenses);
     const titleSpan = document.getElementById('currentMonth');
     if (titleSpan) {
-      let label = '';
-      if (period === 'from_start') label = `من البداية إلى ${to}`;
-      else if (period === 'day') label = `اليوم (${to})`;
-      else if (period === 'week') label = `خلال أسبوع حتى ${to}`;
-      else if (period === 'month') label = `آخر 30 يوم حتى ${to}`;
-      else if (period === 'this_month') label = `هذا الشهر (${moment().format('YYYY-MM')})`;
-      else if (period === 'prev_month') label = `الشهر السابق (${moment().subtract(1,'month').format('YYYY-MM')})`;
-      else if (period === 'custom') label = `${from||''} إلى ${to||''}`;
-      setTextSafe(titleSpan, label);
+      try {
+        let label = '';
+        if (typeof PeriodManager!=='undefined' && PeriodManager.getPeriod){
+          const p = PeriodManager.getPeriod();
+          if (p.id === 'from_start') label = `من البداية إلى ${to}`;
+          else if (p.id === 'day') label = `اليوم (${to})`;
+          else if (p.id === 'week') label = `أسبوع حتى ${to}`;
+          else if (p.id === 'month') label = `آخر 30 يوم حتى ${to}`;
+          else if (p.id === 'this_month') label = `هذا الشهر (${moment().format('YYYY-MM')})`;
+          else if (p.id === 'prev_month') label = `الشهر السابق (${moment().subtract(1,'month').format('YYYY-MM')})`;
+          else if (p.id === 'custom') label = `${from||''} إلى ${to||''}`;
+        } else {
+          const periodSel = document.getElementById('expensesPeriod');
+          const period = periodSel ? periodSel.value : 'from_start';
+          if (period === 'from_start') label = `من البداية إلى ${to}`;
+          else if (period === 'day') label = `اليوم (${to})`;
+          else if (period === 'week') label = `أسبوع حتى ${to}`;
+          else if (period === 'month') label = `آخر 30 يوم حتى ${to}`;
+          else if (period === 'this_month') label = `هذا الشهر (${moment().format('YYYY-MM')})`;
+          else if (period === 'prev_month') label = `الشهر السابق (${moment().subtract(1,'month').format('YYYY-MM')})`;
+          else if (period === 'custom') label = `${from||''} إلى ${to||''}`;
+        }
+        setTextSafe(titleSpan, label);
+      } catch(_) {}
     }
     const tableRoot = table.closest('table'); if (!tableRoot) { table.innerHTML = ''; return; }
     const oldThead = tableRoot.querySelector('thead'); if (oldThead) oldThead.remove();
