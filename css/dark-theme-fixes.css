@@ -709,3 +709,26 @@ body.dark-theme .export-btn:hover {
     background-color: #374151 !important;
     color: #ffffff !important;
 }
+
+/* مخططات sparklines المصغّرة */
+.sparkline {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", "Noto Sans Mono", "Liberation Mono", monospace;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 1px;
+    display: block;
+    white-space: nowrap;
+    padding: 2px 4px;
+    margin-top: 2px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.stat-box .sparkline {
+    min-height: 16px;
+}
+
+body.dark-theme .sparkline {
+    background-color: #0f141f !important;
+    color: inherit !important;
+}
