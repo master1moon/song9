@@ -3383,18 +3383,20 @@
         // تحديث لوحة التحكم
         function updateDashboard() {
             try { const r = getDashboardPeriodRange(); console.log('[Dashboard] update range', r); } catch(_){}
+            const D = (typeof window!=='undefined' && window.data) ? window.data : (typeof data!=='undefined'? data : { packages:[], inventory:[], stores:[], sales:[], payments:[], expenses:[] });
             // تحديث الإحصائيات الثابتة
-            document.getElementById('packagesCount').textContent = data.packages.length;
-            document.getElementById('storesCount').textContent = data.stores.length;
+            document.getElementById('packagesCount').textContent = (D.packages||[]).length;
+            document.getElementById('storesCount').textContent = (D.stores||[]).length;
             
             // إجمالي الكروت لا يعتمد على التاريخ
-            const totalCards = data.inventory.reduce((sum, item) => sum + item.quantity, 0);
+            const totalCards = (D.inventory||[]).reduce((sum, item) => sum + (item.quantity||0), 0);
             document.getElementById('totalCards').textContent = formatNumber(totalCards, false);
             
             // تطبيق الفلاتر الزمنية على مبيعات/تسديدات/مصروفات
-            const filteredSales = filterByDateRange(data.sales, s => s.date);
-            const filteredPayments = filterByDateRange(data.payments, p => p.date);
-            const filteredExpenses = filterByDateRange(data.expenses, e => e.date);
+            const filteredSales = filterByDateRange((D.sales||[]), s => s.date);
+            const filteredPayments = filterByDateRange((D.payments||[]), p => p.date);
+            const filteredExpenses = filterByDateRange((D.expenses||[]), e => e.date);
+            try { console.log('[Dashboard] counts', { sales: filteredSales.length, payments: filteredPayments.length, expenses: filteredExpenses.length }); } catch(_){ }
             
             // إجمالي المبيعات
             const totalSales = filteredSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
@@ -3405,9 +3407,9 @@
             document.getElementById('totalPaymentsSum').textContent = formatNumber(totalPaymentsSum);
             
             // إجمالي الديون = مجموع (مبيعات كل محل - تسديداته) ضمن الفترة
-            const totalDebtsSum = data.stores.reduce((sum, store) => {
-                const storeSales = filteredSales.reduce((s, sale) => s + (sale.storeId === store.id ? (sale.total || 0) : 0), 0);
-                const storePayments = filteredPayments.reduce((p, payment) => p + (payment.storeId === store.id ? (payment.amount || 0) : 0), 0);
+            const totalDebtsSum = (D.stores||[]).reduce((sum, store) => {
+                const storeSales = filteredSales.reduce((s, sale) => s + (String(sale.storeId) === String(store.id) ? (sale.total || 0) : 0), 0);
+                const storePayments = filteredPayments.reduce((p, payment) => p + (String(payment.storeId) === String(store.id) ? (payment.amount || 0) : 0), 0);
                 return sum + (storeSales - storePayments);
             }, 0);
             document.getElementById('totalDebtsSum').textContent = formatNumber(totalDebtsSum);
@@ -3481,7 +3483,7 @@
                 if (window.$dom && window.$dom.schedule) {
                     window.$dom.schedule(() => {
                         const fragment = document.createDocumentFragment();
-                        const packagesToShow = data.packages.slice(-3).reverse();
+                        const packagesToShow = (D.packages||[]).slice(-3).reverse();
                         packagesToShow.forEach(pkg => {
                             const row = window.$safe && window.$safe.row ? 
                                 window.$safe.row([
@@ -3489,7 +3491,7 @@
                                     {text: pkg.retailPrice ? formatNumber(pkg.retailPrice) : '-', className: 'currency'},
                                     {text: pkg.wholesalePrice ? formatNumber(pkg.wholesalePrice) : '-', className: 'currency'},
                                     {text: pkg.distributorPrice ? formatNumber(pkg.distributorPrice) : '-', className: 'currency'},
-                                    formatNumber(data.inventory.filter(i => i.packageId === pkg.id).reduce((sum, i) => sum + i.quantity, 0))
+                                    formatNumber((D.inventory||[]).filter(i => i.packageId === pkg.id).reduce((sum, i) => sum + (i.quantity||0), 0))
                                 ]) : null;
                             if (row) fragment.appendChild(row);
                         });
@@ -3499,7 +3501,7 @@
                 } else {
                     // الطريقة التقليدية مع تحسينات
                     const fragment = document.createDocumentFragment();
-                    const packagesToShow = data.packages.slice(-3).reverse();
+                    const packagesToShow = (D.packages||[]).slice(-3).reverse();
                     packagesToShow.forEach(pkg => {
                         const row = document.createElement('tr');
                         const cells = [
@@ -3507,7 +3509,7 @@
                             pkg.retailPrice ? formatNumber(pkg.retailPrice) : '-',
                             pkg.wholesalePrice ? formatNumber(pkg.wholesalePrice) : '-',
                             pkg.distributorPrice ? formatNumber(pkg.distributorPrice) : '-',
-                            formatNumber(data.inventory.filter(i => i.packageId === pkg.id).reduce((sum, i) => sum + i.quantity, 0))
+                            formatNumber((D.inventory||[]).filter(i => i.packageId === pkg.id).reduce((sum, i) => sum + (i.quantity||0), 0))
                         ];
                         cells.forEach((content, index) => {
                             const td = document.createElement('td');
@@ -3526,7 +3528,7 @@
             const recentStores = document.getElementById('recentStores');
             if (recentStores) {
                 recentStores.innerHTML = '';
-                const storesToShow = data.stores.slice(-3).reverse();
+                const storesToShow = (D.stores||[]).slice(-3).reverse();
                 storesToShow.forEach(store => {
                     const card = document.createElement('div');
                     card.className = 'store-card';
