@@ -3430,6 +3430,30 @@
             const netProfit = totalPaymentsSum - totalExpensesSum;
             document.getElementById('netProfit').textContent = formatNumber(netProfit);
 
+            // تحديث مؤجل لضمان التفوق على أي كتابة متأخرة من دوال أخرى
+            try {
+                const pkgCnt = (D.packages||[]).length;
+                const storeCnt = (D.stores||[]).length;
+                const cardsCnt = totalCards;
+                const salesSum = totalSales;
+                const paySum = totalPaymentsSum;
+                const expSum = totalExpensesSum;
+                const debtsSum = totalDebtsSum;
+                const netSum = netProfit;
+                setTimeout(()=>{
+                    try {
+                        document.getElementById('packagesCount').textContent = pkgCnt;
+                        document.getElementById('storesCount').textContent = storeCnt;
+                        document.getElementById('totalCards').textContent = formatNumber(cardsCnt, false);
+                        const elTS = document.getElementById('totalSales'); if (elTS) elTS.textContent = formatNumber(salesSum);
+                        const elTP = document.getElementById('totalPaymentsSum'); if (elTP) elTP.textContent = formatNumber(paySum);
+                        const elTE = document.getElementById('totalExpensesSum'); if (elTE) elTE.textContent = formatNumber(expSum);
+                        const elTD = document.getElementById('totalDebtsSum'); if (elTD) elTD.textContent = formatNumber(debtsSum);
+                        const elNP = document.getElementById('netProfit'); if (elNP) elNP.textContent = formatNumber(netSum);
+                    } catch(__) {}
+                }, 50);
+            } catch(_) {}
+
             // Sparklines مبسطة (ASCII) حسب التجميع اليومي/الأسبوعي ضمن الفترة
             try {
                 const groupSel = document.getElementById('dashboardSparkGroup');
